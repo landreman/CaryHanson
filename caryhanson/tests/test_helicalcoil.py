@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import unittest
+import numpy as np
 from caryhanson.helicalcoil import HelicalCoil
 
 class HelicalCoilTests(unittest.TestCase):
@@ -59,7 +60,20 @@ class HelicalCoilTests(unittest.TestCase):
         """
         Verify that the d/dphi derivatives are reasonably close to finite-difference derivatives.
         """
-        
+        hc = HelicalCoil(nphi=20000)
+        d_X_d_phi = (np.roll(hc.X_coil, -1, axis=0) - np.roll(hc.X_coil, 1, axis=0)) / (2 * hc.dphi)
+        d_Y_d_phi = (np.roll(hc.Y_coil, -1, axis=0) - np.roll(hc.Y_coil, 1, axis=0)) / (2 * hc.dphi)
+        d_Z_d_phi = (np.roll(hc.Z_coil, -1, axis=0) - np.roll(hc.Z_coil, 1, axis=0)) / (2 * hc.dphi)
+        print('Differences in d_X_d_phi, d_Y_d_phi, d_Z_d_phi: {}, {}, {}'.format(
+            np.max(np.abs(d_X_d_phi - hc.d_X_d_phi_coil)),
+            np.max(np.abs(d_Y_d_phi - hc.d_Y_d_phi_coil)),
+            np.max(np.abs(d_Z_d_phi - hc.d_Z_d_phi_coil))))
+
+        rtol = 1e-6
+        atol = 1e-6
+        np.testing.assert_allclose(d_X_d_phi, hc.d_X_d_phi_coil, rtol=rtol, atol=atol)
+        np.testing.assert_allclose(d_Y_d_phi, hc.d_Y_d_phi_coil, rtol=rtol, atol=atol)
+        np.testing.assert_allclose(d_Z_d_phi, hc.d_Z_d_phi_coil, rtol=rtol, atol=atol)
         
 if __name__ == "__main__":
     unittest.main()
