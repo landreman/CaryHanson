@@ -6,6 +6,7 @@ This module provides a function for finding periodic field lines and the magneti
 
 import numpy as np
 from scipy.optimize import fsolve
+from scipy.integrate import solve_ivp
 from .spectral_diff_matrix import spectral_diff_matrix
 #import matplotlib.pyplot as plt
 
@@ -43,15 +44,31 @@ def periodic_field_line(field, n, periods=1, R0=None, Z0=None):
     if array_input:
         assert isinstance(Z0, np.ndarray)
         assert R0.shape == Z0.shape
+
+    def ode_func(t, y):
+        """
+        This is the function used for ODE integration.
+        """
+        R1 = y[0]
+        phi1 = t
+        Z1 = y[1]
+        BR1, Bphi1, BZ1 = field.BR_Bphi_BZ(R1, phi1, Z1)
+        return [R1 * BR1 / Bphi1, R1 * BZ1 / Bphi1]
         
     if not array_input:
-        # Use a crude 1st-order Euler step to generate the initial guess.
-        R0 = np.full(n, R0)
-        Z0 = np.full(n, Z0)
-        for j in range(n - 1):
-            BR, Bphi, BZ = field.BR_Bphi_BZ(R0[j], dphi * j, Z0[j])
-            R0[j + 1] = R0[j] + dphi * R0[j] * BR / Bphi
-            Z0[j + 1] = Z0[j] + dphi * R0[j] * BZ / Bphi
+        # Use Runge-Kutta to initialize our guess for the field line
+        t_span = (0, phi[-1])
+        sol = solve_ivp(ode_func, t_span, [R0, Z0], t_eval = phi)
+        R0 = sol.y[0, :]
+        Z0 = sol.y[1, :]
+        assert R0.shape == phi.shape
+        ## Use a crude 1st-order Euler step to generate the initial guess.
+        #R0 = np.full(n, R0)
+        #Z0 = np.full(n, Z0)
+        #for j in range(n - 1):
+        #    BR, Bphi, BZ = field.BR_Bphi_BZ(R0[j], dphi * j, Z0[j])
+        #    R0[j + 1] = R0[j] + dphi * R0[j] * BR / Bphi
+        #    Z0[j + 1] = Z0[j] + dphi * R0[j] * BZ / Bphi
             
         print('Generated initial condition:')
         print('R0: ', R0)
@@ -85,6 +102,7 @@ def periodic_field_line(field, n, periods=1, R0=None, Z0=None):
     Z = root[n:2 * n]
     """
     bigphi = np.concatenate((phi, phi + phimax))
+    plt.figure(figsize=(14,5))
     plt.subplot(1, 2, 1)
     plt.plot(bigphi, np.concatenate((R, R)), '.-', label='R')
     plt.xlabel('phi')

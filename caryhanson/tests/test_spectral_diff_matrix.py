@@ -19,8 +19,8 @@ class SpectralDiffMatrixTests(unittest.TestCase):
                 for j in range(n):
                     self.assertLess(np.abs(D[j, j]), 1e-14)
                 # Check that the row and column sums are all 0
-                self.assertLess(np.max(np.abs(np.sum(D, axis=0))), 1e-13)
-                self.assertLess(np.max(np.abs(np.sum(D, axis=1))), 1e-13)
+                self.assertLess(np.max(np.abs(np.sum(D, axis=0))), 1e-11)
+                self.assertLess(np.max(np.abs(np.sum(D, axis=1))), 1e-11)
 
     def test_n2(self):
         """
