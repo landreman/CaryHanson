@@ -7,7 +7,7 @@ This module provides a function for finding periodic field lines and the magneti
 import numpy as np
 from scipy.optimize import fsolve
 from .spectral_diff_matrix import spectral_diff_matrix
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 def periodic_field_line(field, n, periods=1, R0=None, Z0=None):
     """
