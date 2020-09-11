@@ -13,9 +13,8 @@ class HelicalCoil:
     helical coils.
 
     """
-    def __init__(self, m0=5, l0=2, B0=1, R0=1, r=0.3, n2pi=2, nphi=200,
-                 I=np.array([-1, 1]) * 0.021, A=np.array([[0,
-                                                           np.pi/2]]), B=np.zeros((1,2))):
+    def __init__(self, m0=5, l0=2, B0=1, R0=1, r=0.3, n2pi=2, nphi=400,
+                 I=np.array([-1, 1]) * 0.021, A=[[0, np.pi/2]], B=[[0, 0]]):
         self.m0 = m0
         self.l0 = l0
         self.B0 = B0
@@ -23,9 +22,9 @@ class HelicalCoil:
         self.r = r
         self.n2pi = n2pi
         self.nphi = nphi
-        self.I = I
-        self.A = A
-        self.B = B
+        self.I = np.array(I)
+        self.A = np.array(A)
+        self.B = np.array(B)
 
         self.update()
 
@@ -38,7 +37,7 @@ class HelicalCoil:
         
         self.ncoils = len(self.I)
         self.phi = np.linspace(0, 2 * np.pi * self.n2pi, self.nphi, endpoint=False)
-        self.d_phi = self.phi[1] - self.phi[0]
+        self.dphi = self.phi[1] - self.phi[0]
         phi_big = np.kron(np.ones((self.ncoils, 1)), self.phi).transpose()
         cosphi = np.cos(phi_big)
         sinphi = np.sin(phi_big)
@@ -63,7 +62,7 @@ class HelicalCoil:
         self.d_X_d_phi_coil = self.R_coil * (-sinphi) + self.r * (-sineta) * d_eta_d_phi * cosphi
         self.d_Y_d_phi_coil = self.R_coil *   cosphi  + self.r * (-sineta) * d_eta_d_phi * sinphi
         self.d_Z_d_phi_coil = -self.r * coseta * d_eta_d_phi
-        self.factor = self.d_phi
+        self.factor = self.dphi
 
     def BR_Bphi_BZ(self, R, phi, Z):
         """
@@ -96,3 +95,20 @@ class HelicalCoil:
 
         return (BR, Bphi, BZ)
 
+    @classmethod
+    def optimized(cls, *args, **kwargs):
+        """
+        Return the optimized helical coil shape from Hanson & Cary (1984).
+        """
+        A = [[0, np.pi / 2], \
+             [0, 0.224859], \
+             [0, 0], \
+             [0, -0.000856]]
+        
+        B = [[0, 0], \
+             [0.243960, 0], \
+             [0.026240, -0.026490], \
+             [0.000856, 0]]
+
+        hc = cls(A=A, B=B, *args, **kwargs)
+        return hc
