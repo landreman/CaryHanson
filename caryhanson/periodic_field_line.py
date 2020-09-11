@@ -45,22 +45,14 @@ def periodic_field_line(field, n, periods=1, R0=None, Z0=None):
         assert isinstance(Z0, np.ndarray)
         assert R0.shape == Z0.shape
 
-    def ode_func(t, y):
-        """
-        This is the function used for ODE integration.
-        """
-        R1 = y[0]
-        phi1 = t
-        Z1 = y[1]
-        BR1, Bphi1, BZ1 = field.BR_Bphi_BZ(R1, phi1, Z1)
-        return [R1 * BR1 / Bphi1, R1 * BZ1 / Bphi1]
-        
     if not array_input:
         # Use Runge-Kutta to initialize our guess for the field line
-        t_span = (0, phi[-1])
-        sol = solve_ivp(ode_func, t_span, [R0, Z0], t_eval = phi)
-        R0 = sol.y[0, :]
-        Z0 = sol.y[1, :]
+        t_span = (0, phimax)
+        phi_plus1 = np.linspace(0, phimax, n + 1, endpoint=True)
+        sol = solve_ivp(field.d_RZ_d_phi, t_span, [R0, Z0], t_eval = phi_plus1)
+        # Shift the trajectory by a linear function to make it periodic
+        R0 = sol.y[0, :-1] - np.linspace(0, sol.y[0, -1] - sol.y[0, 0], n, endpoint=True)
+        Z0 = sol.y[1, :-1] - np.linspace(0, sol.y[1, -1] - sol.y[1, 0], n, endpoint=True)
         assert R0.shape == phi.shape
         ## Use a crude 1st-order Euler step to generate the initial guess.
         #R0 = np.full(n, R0)
@@ -100,6 +92,9 @@ def periodic_field_line(field, n, periods=1, R0=None, Z0=None):
     root = fsolve(func, state, xtol=1e-13)
     R = root[0:n]
     Z = root[n:2 * n]
+
+    residual = func(root)
+    print('Residual: ', np.max(np.abs(residual)))
     """
     bigphi = np.concatenate((phi, phi + phimax))
     plt.figure(figsize=(14,5))
