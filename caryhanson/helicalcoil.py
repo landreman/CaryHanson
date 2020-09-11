@@ -16,6 +16,7 @@ class HelicalCoil:
     def __init__(self, m0=5, l0=2, B0=1, R0=1, r=0.3, n2pi=2, nphi=400,
                  I=np.array([-1, 1]) * 0.021, A=[[0, np.pi/2]], B=[[0, 0]]):
         self.m0 = m0
+        self.nfp = m0
         self.l0 = l0
         self.B0 = B0
         self.R0 = R0
@@ -69,7 +70,7 @@ class HelicalCoil:
         Return the cylindrical components of the magnetic field at a specified point.
         This subroutine only works for single points as arguments.
         """
-        print("BR_Bphi_BZ called with R=%g, phi=%g, Z=%g" % (R, phi, Z))
+        #print("BR_Bphi_BZ called with R=%g, phi=%g, Z=%g" % (R, phi, Z))
 
         cosphi = np.cos(phi)
         sinphi = np.sin(phi)
