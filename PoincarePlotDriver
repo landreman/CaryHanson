@@ -5,14 +5,18 @@ This script generates Poincare plots for the configurations
 in Hanson & Cary (1984). You can run it either serially or with mpi.
 """
 
-from caryhanson import HelicalCoil, poincare
 import numpy as np
+import sys
+sys.path.append('/Users/mattland/CaryHanson')
+from caryhanson import HelicalCoil, poincare
 
 #hc = HelicalCoil() # Straight winding law
 hc = HelicalCoil.optimized() # Optimized winding law from Hanson & Cary (1984)
 
 # Define initial (R,Z) points for the Poincare plot:
-r = np.linspace(0.96, 1.13, 8)
-z = r * 0
+r0 = np.linspace(0.955, 1.2, 16)
+z0 = r0 * 0
 
-poincare(hc, r, z, npoints=200, pdf=True)
+npoints = 200
+poincare(hc, r0, z0, npoints=npoints, rmin=0.72, zmin=-0.23, zmax=0.23,
+         pdf=True, extra_str='npoints{}'.format(npoints))
