@@ -4,6 +4,7 @@ import unittest
 import numpy as np
 from scipy.interpolate import interp1d
 from caryhanson.helicalcoil import HelicalCoil
+from caryhanson.reiman import ReimanField
 from caryhanson.periodic_field_line import periodic_field_line
 
 class PeriodicFieldLineTests(unittest.TestCase):
@@ -218,6 +219,55 @@ class PeriodicFieldLineTests(unittest.TestCase):
         hc = HelicalCoil()
         for nphi in [49, 66, 79]:
             R, phi, Z = periodic_field_line(hc, nphi, periods=8, R0=0.862, Z0=0.016)
+            # Interpolate the reference result to the lower-resolution phi grid:
+            R_ref = interp1d(phi_hires, R_hires, kind='cubic')(phi)
+            Z_ref = interp1d(phi_hires, Z_hires, kind='cubic')(phi)
+            print('For n={}, errors in R,Z are {}, {}'.format( \
+                nphi, np.max(np.abs(R - R_ref)), np.max(np.abs(Z - Z_ref))))
+            np.testing.assert_allclose(R, R_ref, atol=1.0e-4)
+            np.testing.assert_allclose(Z, Z_ref, atol=1.0e-4)
+        
+    def test_default_reiman(self):
+        """
+        Verify that we find the island chain for the default Reiman model field.
+        """
+        # Reference values were computed for n = 31:
+        R_hires = np.array([1.20871043906899 , 1.204438124120022, 1.19179608834912 ,
+                            1.171301898186122, 1.143794588184265, 1.110400310846998,
+                            1.072486231812169, 1.031604557930179, 0.98942898973315 ,
+                            0.947686199938486, 0.908085143264952, 0.872247091625687,
+                            0.841639259065597, 0.817514733845958, 0.800861176863773,
+                            0.792360386698604, 0.792360386698613, 0.800861176863799,
+                            0.817514733845999, 0.841639259065652, 0.872247091625755,
+                            0.908085143265029, 0.94768619993857 , 0.989428989733236,
+                            1.031604557930264, 1.072486231812249, 1.110400310847071,
+                            1.143794588184327, 1.17130189818617 , 1.191796088349153,
+                            1.204438124120039])
+        
+        Z_hires = np.array([ 4.272249278459001e-14,  4.201310251168416e-02,
+                             8.230618367016733e-02,  1.192296399986278e-01,
+                             1.512718208566566e-01,  1.771209155951297e-01,
+                             1.957186592383142e-01,  2.063036579763161e-01,
+                             2.084425607171169e-01,  2.020478005311981e-01,
+                             1.873811796519234e-01,  1.650431512613451e-01,
+                             1.359482368663807e-01,  1.012875856808670e-01,
+                             6.248020883679259e-02,  2.111488490182711e-02,
+                             -2.111488490191273e-02, -6.248020883687464e-02,
+                             -1.012875856809421e-01, -1.359482368664459e-01,
+                             -1.650431512613978e-01, -1.873811796519613e-01,
+                             -2.020478005312195e-01, -2.084425607171212e-01,
+                             -2.063036579763029e-01, -1.957186592382842e-01,
+                             -1.771209155950841e-01, -1.512718208565974e-01,
+                             -1.192296399985573e-01, -8.230618367008856e-02,
+                             -4.201310251160034e-02])
+        n_hires = len(R_hires)
+        # Factor 6 in the next line is because we follow the line for 6 field periods
+        phi_hires = np.linspace(0, 6 * 2 * np.pi, n_hires, endpoint=False)
+        # Create a default Reiman field
+        rf = ReimanField()
+        for nphi_float in np.linspace(9, 31, 7):
+            nphi = int(nphi_float)
+            R, phi, Z = periodic_field_line(rf, nphi, periods=6, R0=1.2, Z0=0)
             # Interpolate the reference result to the lower-resolution phi grid:
             R_ref = interp1d(phi_hires, R_hires, kind='cubic')(phi)
             Z_ref = interp1d(phi_hires, Z_hires, kind='cubic')(phi)
