@@ -96,7 +96,36 @@ class HelicalCoil(Field):
         # In that last term we add the toroidal field.
 
         return (BR, Bphi, BZ)
+    """
+    def grad_BR_Bphi_BZ(self, R, phi, Z):
+        #print("BR_Bphi_BZ called with R=%g, phi=%g, Z=%g" % (R, phi, Z))
 
+        cosphi = np.cos(phi)
+        sinphi = np.sin(phi)
+        X = R * cosphi
+        Y = R * sinphi
+
+        dX = X - self.X_coil
+        dY = Y - self.Y_coil
+        dZ = Z - self.Z_coil
+
+        r2 = dX * dX + dY * dY + dZ * dZ
+        one_over_r3 = 1 / (r2 * np.sqrt(r2))
+        m3_over_r5 = -3 * one_over_r3 / r2
+        
+        # Biot-Savart law:
+        d_BX_d_X = self.factor * np.sum(self.I * np.sum(m3_over_r5 * dX * (self.d_Y_d_phi_coil * dZ - self.d_Z_d_phi_coil * dY), axis=0))
+        BX = self.factor * np.sum(self.I * np.sum(one_over_r3 * (self.d_Y_d_phi_coil * dZ - self.d_Z_d_phi_coil * dY), axis=0))
+        BY = self.factor * np.sum(self.I * np.sum(one_over_r3 * (self.d_Z_d_phi_coil * dX - self.d_X_d_phi_coil * dZ), axis=0))
+        BZ = self.factor * np.sum(self.I * np.sum(one_over_r3 * (self.d_X_d_phi_coil * dY - self.d_Y_d_phi_coil * dX), axis=0))
+
+        # Convert to cylindrical components:
+        BR   =  BX * cosphi + BY * sinphi
+        Bphi = -BX * sinphi + BY * cosphi + self.B0 * self.R0 / R
+        # In that last term we add the toroidal field.
+
+        return (BR, Bphi, BZ)
+    """
     @classmethod
     def optimized(cls, *args, **kwargs):
         """
