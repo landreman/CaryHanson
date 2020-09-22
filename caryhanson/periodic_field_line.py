@@ -5,7 +5,7 @@ This module provides a function for finding periodic field lines and the magneti
 """
 
 import numpy as np
-from scipy.optimize import fsolve
+import scipy.optimize
 from scipy.integrate import solve_ivp
 from .spectral_diff_matrix import spectral_diff_matrix
 #import matplotlib.pyplot as plt
@@ -118,11 +118,14 @@ def periodic_field_line(field, n, periods=1, R0=None, Z0=None):
         
     state = np.concatenate((R0, Z0))
     #root, infodict, ier, mesg = fsolve(func, state)
-    root = fsolve(func, state, xtol=1e-13, args=(n, D, phi, field))
+    #root = fsolve(func, state, xtol=1e-13, args=(n, D, phi, field))
+    soln = scipy.optimize.root(func, state, tol=1e-13, args=(n, D, phi, field), jac=jacobian)
+    root = soln.x
     R = root[0:n]
     Z = root[n:2 * n]
 
-    residual = func(root, n, D, phi, field)
+    #residual = func(root, n, D, phi, field)
+    residual = soln.fun
     print('Residual: ', np.max(np.abs(residual)))
     """
     bigphi = np.concatenate((phi, phi + phimax))

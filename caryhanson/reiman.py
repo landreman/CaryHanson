@@ -102,16 +102,16 @@ class ReimanField(Field):
         #if len(self.iotaj) > 1:
         #    iota_terms[1] = 0
         iota_terms_sum = np.sum(iota_terms)
-        print('iota_terms_sum: ', iota_terms_sum)
+        #print('iota_terms_sum: ', iota_terms_sum)
         d_Q1_d_R = (R - R0) * m2_sin_terms - Z * m_cos_terms
         d_Q1_d_Z = Z * m2_sin_terms + (R - R0) * m_cos_terms
         d_Q0_d_R = -((R - R0) * m2_cos_terms + Z * m_sin_terms) + B0 * B0 * (R - R0) * iota_terms_sum
         d_Q0_d_Z = -(Z * m2_cos_terms - (R - R0) * m_sin_terms) + B0 * B0 * Z * iota_terms_sum
         
-        print('d_Q0_d_R an:', d_Q0_d_R)
-        print('d_Q1_d_R an:', d_Q1_d_R)
-        print('d_Q0_d_Z an:', d_Q0_d_Z)
-        print('d_Q1_d_Z an:', d_Q1_d_Z)
+        #print('d_Q0_d_R an:', d_Q0_d_R)
+        #print('d_Q1_d_R an:', d_Q1_d_R)
+        #print('d_Q0_d_Z an:', d_Q0_d_Z)
+        #print('d_Q1_d_Z an:', d_Q1_d_Z)
         #BR = (Z * Q0 + (R - R0) * Q1) / R
         #Bphi = -B0
         #BZ = (Z * Q1 - (R - R0) * Q0) / R
