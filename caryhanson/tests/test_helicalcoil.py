@@ -56,7 +56,7 @@ class HelicalCoilTests(unittest.TestCase):
             self.assertAlmostEqual(BZ, BZ_true, places=places)
 
 
-    def test_phi_derivative(self):
+    def test_phi_derivative_of_position(self):
         """
         Verify that the d/dphi derivatives are reasonably close to finite-difference derivatives.
         """
@@ -74,6 +74,77 @@ class HelicalCoilTests(unittest.TestCase):
         np.testing.assert_allclose(d_X_d_phi, hc.d_X_d_phi_coil, rtol=rtol, atol=atol)
         np.testing.assert_allclose(d_Y_d_phi, hc.d_Y_d_phi_coil, rtol=rtol, atol=atol)
         np.testing.assert_allclose(d_Z_d_phi, hc.d_Z_d_phi_coil, rtol=rtol, atol=atol)
+
+    def test_derivatives_of_B(self):
+        """
+        Test the derivatives of B.
+        """
+        #hc = HelicalCoil()
+        for j in range(10):
+            B0 = np.random.rand() + 0.5
+            R0 = np.random.rand() + 0.5
+            I = (np.random.rand() - 0.5) * 0.1 * np.array([1, -1])
+            
+            hc = HelicalCoil(B0=B0, R0=R0, I=I)
+            # Pick a random location:
+            R = np.random.rand() + 0.5
+            phi = np.random.rand() * 10 - 5
+            Z = np.random.rand() * 4 - 2
+            #R = 1.1
+            #phi = 0
+            #Z = 0.0
+
+            # Evaluate finite difference derivatives
+            delta = 1e-6
+            delta2 = delta * 2
+            
+            BRp, Bphip, BZp = hc.BR_Bphi_BZ(R + delta, phi, Z)
+            BRm, Bphim, BZm = hc.BR_Bphi_BZ(R - delta, phi, Z)
+            
+            d_BR_d_R_fd = (BRp - BRm) / delta2
+            d_Bphi_d_R_fd = (Bphip - Bphim) / delta2
+            d_BZ_d_R_fd = (BZp - BZm) / delta2
+            
+            BRp, Bphip, BZp = hc.BR_Bphi_BZ(R, phi + delta, Z)
+            BRm, Bphim, BZm = hc.BR_Bphi_BZ(R, phi - delta, Z)
+
+            d_BR_d_phi_fd = (BRp - BRm) / delta2
+            d_Bphi_d_phi_fd = (Bphip - Bphim) / delta2
+            d_BZ_d_phi_fd = (BZp - BZm) / delta2
+
+            BRp, Bphip, BZp = hc.BR_Bphi_BZ(R, phi, Z + delta)
+            BRm, Bphim, BZm = hc.BR_Bphi_BZ(R, phi, Z - delta)
+
+            d_BR_d_Z_fd = (BRp - BRm) / delta2
+            d_Bphi_d_Z_fd = (Bphip - Bphim) / delta2
+            d_BZ_d_Z_fd = (BZp - BZm) / delta2
+
+            print('Finite difference derivatives:')
+            grad_B_fd = np.array([[d_BR_d_R_fd, d_BR_d_phi_fd, d_BR_d_Z_fd],
+                         [d_Bphi_d_R_fd, d_Bphi_d_phi_fd, d_Bphi_d_Z_fd],
+                         [d_BZ_d_R_fd, d_BZ_d_phi_fd, d_BZ_d_Z_fd]])
+            print(grad_B_fd)
+            # Evaluate the analytic derivatives:
+            grad_B = hc.grad_B(R, phi, Z)
+            print('Analytic derivatives:')
+            print(grad_B)
+
+            print('Differences:')
+            print(grad_B - grad_B_fd)
+
+            places = 6
+            self.assertAlmostEqual(d_BR_d_R_fd, grad_B[0,0], places=places)
+            self.assertAlmostEqual(d_BR_d_phi_fd, grad_B[0,1], places=places)
+            self.assertAlmostEqual(d_BR_d_Z_fd, grad_B[0,2], places=places)
+            
+            self.assertAlmostEqual(d_Bphi_d_R_fd, grad_B[1,0], places=places)
+            self.assertAlmostEqual(d_Bphi_d_phi_fd, grad_B[1,1], places=places)
+            self.assertAlmostEqual(d_Bphi_d_Z_fd, grad_B[1,2], places=places)
+            
+            self.assertAlmostEqual(d_BZ_d_R_fd, grad_B[2,0], places=places)
+            self.assertAlmostEqual(d_BZ_d_phi_fd, grad_B[2,1], places=places)
+            self.assertAlmostEqual(d_BZ_d_Z_fd, grad_B[2,2], places=places)
+
         
 if __name__ == "__main__":
     unittest.main()

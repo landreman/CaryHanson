@@ -10,7 +10,7 @@
 # root directory.
 
 # Example of running a specific test:
-#python -m unittest -v caryhanson.tests.test_reiman
+#python -m unittest -v caryhanson.tests.test_helicalcoil
 
 # Run all tests:
 python -m unittest -v

@@ -5,9 +5,51 @@ set of associated helical coils.
 
 """
 
+# These next 2 lines tell jax to use double precision:                                                                     
+from jax.config import config                                                                                             
+config.update("jax_enable_x64", True)
+
 import numpy as np
 from .general import mu0
 from .field import Field
+import jax.numpy as jnp                                                                                                   
+#import numpy as jnp
+from jax import grad, jit, jacrev, jacfwd
+
+#@jit
+def B_func(R, phi, Z, X_coil, Y_coil, Z_coil, d_X_d_phi_coil, d_Y_d_phi_coil, d_Z_d_phi_coil, I, factor, B0, R0):
+    """
+    Pure function for computing B from a helical coil, in a form that is convenient for automatic differentiation.
+    """
+    #print("BR_Bphi_BZ called with R=%g, phi=%g, Z=%g" % (R, phi, Z))
+
+    cosphi = jnp.cos(phi)
+    sinphi = jnp.sin(phi)
+    X = R * cosphi
+    Y = R * sinphi
+
+    dX = X - X_coil
+    dY = Y - Y_coil
+    dZ = Z - Z_coil
+
+    r2 = dX * dX + dY * dY + dZ * dZ
+    one_over_r3 = 1 / (r2 * jnp.sqrt(r2))
+
+    # Biot-Savart law:
+    BX = factor * jnp.sum(I * jnp.sum(one_over_r3 * (d_Y_d_phi_coil * dZ - d_Z_d_phi_coil * dY), axis=0))
+    BY = factor * jnp.sum(I * jnp.sum(one_over_r3 * (d_Z_d_phi_coil * dX - d_X_d_phi_coil * dZ), axis=0))
+    BZ = factor * jnp.sum(I * jnp.sum(one_over_r3 * (d_X_d_phi_coil * dY - d_Y_d_phi_coil * dX), axis=0))
+
+    # Convert to cylindrical components:
+    BR   =  BX * cosphi + BY * sinphi
+    Bphi = -BX * sinphi + BY * cosphi + B0 * R0 / R
+    # In that last term we add the toroidal field.
+
+    return jnp.array([BR, Bphi, BZ])
+
+#grad_B_autodiff = grad(B_func, argnums=(0,1,2))
+grad_B_autodiff = jit(jacrev(B_func, argnums=(0,1,2)))
+#grad_B_autodiff = jit(jacfwd(B_func, argnums=(0,1,2)))
 
 class HelicalCoil(Field):
     """
@@ -72,7 +114,7 @@ class HelicalCoil(Field):
         This subroutine only works for single points as arguments.
         """
         #print("BR_Bphi_BZ called with R=%g, phi=%g, Z=%g" % (R, phi, Z))
-
+        
         cosphi = np.cos(phi)
         sinphi = np.sin(phi)
         X = R * cosphi
@@ -96,6 +138,20 @@ class HelicalCoil(Field):
         # In that last term we add the toroidal field.
 
         return (BR, Bphi, BZ)
+        
+        """
+        # This next line returns B using the autodiff pure function:
+        return B_func(R, phi, Z, self.X_coil, self.Y_coil,
+                      self.Z_coil, self.d_X_d_phi_coil, self.d_Y_d_phi_coil,
+                      self.d_Z_d_phi_coil, self.I, self.factor, self.B0, self.R0)
+        """
+        
+    def grad_B(self, R, phi, Z):
+        temp = grad_B_autodiff(R, phi, Z, self.X_coil, self.Y_coil,
+                               self.Z_coil, self.d_X_d_phi_coil, self.d_Y_d_phi_coil,
+                               self.d_Z_d_phi_coil, self.I, self.factor, self.B0, self.R0)
+        return np.array(temp).transpose()
+
     """
     def grad_BR_Bphi_BZ(self, R, phi, Z):
         #print("BR_Bphi_BZ called with R=%g, phi=%g, Z=%g" % (R, phi, Z))
