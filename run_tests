@@ -9,5 +9,9 @@
 # or else set the PYTHONPATH environment variable to the project's
 # root directory.
 
+# Example of running a specific test:
+#python -m unittest -v caryhanson.tests.test_reiman
+
+# Run all tests:
 python -m unittest -v
 # -v for verbose
