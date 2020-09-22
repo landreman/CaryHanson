@@ -7,8 +7,8 @@ For derivation of expressions here, see
 """
 
 # These next 2 lines tell jax to use double precision:
-from jax.config import config
-config.update("jax_enable_x64", True)
+#from jax.config import config
+#config.update("jax_enable_x64", True)
 
 #import jax.numpy as jnp
 import numpy as jnp
