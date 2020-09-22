@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3A
 
 """
 This module provides a function for finding periodic field lines and the magnetic axis.
@@ -9,6 +9,54 @@ from scipy.optimize import fsolve
 from scipy.integrate import solve_ivp
 from .spectral_diff_matrix import spectral_diff_matrix
 #import matplotlib.pyplot as plt
+
+def func(x, n, D, phi, field):
+    """
+    This is the vector-valued function that returns the residual.
+    """
+    R = x[0:n]
+    Z = x[n:2 * n]
+    #print('func eval ')
+    #print('R=',R)
+    #print('Z=',Z)
+    BR = np.zeros(n)
+    Bphi = np.zeros(n)
+    BZ = np.zeros(n)
+    for j in range(n):
+        BR[j], Bphi[j], BZ[j] = field.BR_Bphi_BZ(R[j], phi[j], Z[j])
+    R_residual = R * BR / Bphi - np.matmul(D, R)
+    Z_residual = R * BZ / Bphi - np.matmul(D, Z)
+    #R_residual = 0 * R * BR / Bphi - np.matmul(D, R)
+    #Z_residual = 0 * R * BZ / Bphi - np.matmul(D, Z)
+    return np.concatenate((R_residual, Z_residual))
+
+def jacobian(x, n, D, phi, field):
+    """
+    This function returns the derivative of "func"
+    """
+    R = x[0:n]
+    Z = x[n:2 * n]
+    print('jacobian eval ')
+    #print('R=',R)
+    #print('Z=',Z)
+    jac = np.zeros((2 * n, 2 * n))
+    jac[0:n, 0:n] = -D
+    jac[n:, n:] = -D
+    for j in range(n):
+        BR, Bphi, BZ = field.BR_Bphi_BZ(R[j], phi[j], Z[j])
+        grad_B = field.grad_B(R[j], phi[j], Z[j])
+        # Top left quadrant: d (R residual) / d R
+        jac[j, j] += BR / Bphi + R[j] * grad_B[0, 0] / Bphi - R[j] * BR / (Bphi * Bphi) * grad_B[1, 0]
+        # Top right quadrant: d (R residual) / d Z
+        jac[j, j + n] = R[j] * grad_B[0, 2] / Bphi - R[j] * BR / (Bphi * Bphi) * grad_B[1, 2]
+        # Bottom left quadrant: d (Z residual) / d R
+        jac[j + n, j] = BZ / Bphi + R[j] * grad_B[2, 0] / Bphi - R[j] * BZ / (Bphi * Bphi) * grad_B[1, 0]
+        # Bottom right quadrant: d (Z residual) / d Z
+        jac[j + n, j + n] += R[j] * grad_B[2, 2] / Bphi - R[j] * BZ / (Bphi * Bphi) * grad_B[1, 2]
+    #R_residual = R * BR / Bphi - np.matmul(D, R)
+    #Z_residual = R * BZ / Bphi - np.matmul(D, Z)
+    return jac
+
 
 def periodic_field_line(field, n, periods=1, R0=None, Z0=None):
     """
@@ -67,33 +115,14 @@ def periodic_field_line(field, n, periods=1, R0=None, Z0=None):
         print('Z0: ', Z0)
 
     D = spectral_diff_matrix(n, xmin=0, xmax=phimax)
-    
-    def func(x):
-        """
-        This is the vector-valued function that returns the residual.
-        """
-        R = x[0:n]
-        Z = x[n:2 * n]
-        #print('func eval ')
-        #print('R=',R)
-        #print('Z=',Z)
-        BR = np.zeros(n)
-        Bphi = np.zeros(n)
-        BZ = np.zeros(n)
-        for j in range(n):
-            BR[j], Bphi[j], BZ[j] = field.BR_Bphi_BZ(R[j], phi[j], Z[j])
-        R_residual = R * BR / Bphi - np.matmul(D, R)
-        Z_residual = R * BZ / Bphi - np.matmul(D, Z)
-        return np.concatenate((R_residual, Z_residual))
         
-    
     state = np.concatenate((R0, Z0))
     #root, infodict, ier, mesg = fsolve(func, state)
-    root = fsolve(func, state, xtol=1e-13)
+    root = fsolve(func, state, xtol=1e-13, args=(n, D, phi, field))
     R = root[0:n]
     Z = root[n:2 * n]
 
-    residual = func(root)
+    residual = func(root, n, D, phi, field)
     print('Residual: ', np.max(np.abs(residual)))
     """
     bigphi = np.concatenate((phi, phi + phimax))

@@ -5,10 +5,49 @@ import numpy as np
 from scipy.interpolate import interp1d
 from caryhanson.helicalcoil import HelicalCoil
 from caryhanson.reiman import ReimanField
-from caryhanson.periodic_field_line import periodic_field_line
+from caryhanson.periodic_field_line import periodic_field_line, func, jacobian
 
 class PeriodicFieldLineTests(unittest.TestCase):
 
+    def test_jacobian(self):
+        """
+        Test that the Jacobian function correctly gives the derivative of func.
+        """
+
+        field = ReimanField()
+        for j in range(10):
+            n = np.random.randint(1, 20)
+            #n = 3
+            R = np.random.rand(n) + 0.5
+            Z = np.random.rand(n) - 0.5
+            x0 = np.concatenate((R, Z))
+            phi = np.random.rand(n) * 10 - 5
+            D = np.random.rand(n, n)
+            print('D:')
+            print(D)
+                  
+            # Get analytic Jacobian:
+            jac = jacobian(x0, n, D, phi, field)
+
+            # Form finite-difference Jacobian:
+            delta = 1e-7
+            jac_fd = np.zeros((2 * n, 2 * n))
+            for k in range(n * 2):
+                x = np.copy(x0)
+                x[k] = x0[k] + delta
+                funcp = func(x, n, D, phi, field)
+                x[k] = x0[k] - delta
+                funcm = func(x, n, D, phi, field)
+                jac_fd[:, k] = (funcp - funcm) / (2 * delta)
+
+            print('Analytic Jacobian:')
+            print(jac)
+            print('Finite-difference Jacobian:')
+            print(jac_fd)
+            print('Difference:')
+            print(jac - jac_fd)
+            np.testing.assert_allclose(jac, jac_fd, atol=1.0e-6)
+    
     def test_default_axis(self):
         """
         Verify that we find the magnetic axis for the default coil shape
