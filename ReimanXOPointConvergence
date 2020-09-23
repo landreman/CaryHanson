@@ -26,9 +26,9 @@ Z0s = np.zeros(ns.shape)
 field = ReimanField()
 for j in range(len(ns)):
     n = ns[j]
-    R, phi, Z = periodic_field_line(field, n, periods=periods, R0=Rguess, Z0=Zguess)
-    R0s[j] = R[0]
-    Z0s[j] = Z[0]
+    pfl = periodic_field_line(field, n, periods=periods, R0=Rguess, Z0=Zguess)
+    R0s[j] = pfl.R[0]
+    Z0s[j] = pfl.Z[0]
 
 print('ns: ', ns)
 print('R0s:', R0s)

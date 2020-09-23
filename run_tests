@@ -10,7 +10,7 @@
 # root directory.
 
 # Example of running all tests for a specific module:
-#python -m unittest -v caryhanson.tests.test_tangent_map
+#python -m unittest -v caryhanson.tests.test_fourier_interpolation
 
 # Example of running a specific test that matches a pattern:
 #python -m unittest -v caryhanson.tests.test_periodic_field_line -k jacobian

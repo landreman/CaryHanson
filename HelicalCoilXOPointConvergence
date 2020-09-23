@@ -20,16 +20,17 @@ periods = 6; Rguess = 0.797; Zguess = 0.0242
 
 np.set_printoptions(precision=15)
 
-#ns = np.arange(31, 33, 2)
-ns = np.array([int(n) for n in np.linspace(31, 100, 25)])
+#ns = np.arange(9, 33, 2)
+ns = np.array([int(n) for n in np.linspace(31, 100, 10)])
 R0s = np.zeros(ns.shape)
 Z0s = np.zeros(ns.shape)
 hc = HelicalCoil()
+#hc = HelicalCoil(I=[0.0307,-0.0307]) # Page 2469 of Cary & Hanson (1986)
 for j in range(len(ns)):
     n = ns[j]
-    R, phi, Z = periodic_field_line(hc, n, periods=periods, R0=Rguess, Z0=Zguess)
-    R0s[j] = R[0]
-    Z0s[j] = Z[0]
+    pfl = periodic_field_line(hc, n, periods=periods, R0=Rguess, Z0=Zguess)
+    R0s[j] = pfl.R[0]
+    Z0s[j] = pfl.Z[0]
 
 print('ns: ', ns)
 print('R0s:', R0s)

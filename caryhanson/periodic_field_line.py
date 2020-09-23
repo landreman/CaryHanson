@@ -8,7 +8,13 @@ import numpy as np
 import scipy.optimize
 from scipy.integrate import solve_ivp
 from .spectral_diff_matrix import spectral_diff_matrix
-#import matplotlib.pyplot as plt
+from .fourier_interpolation import fourier_interpolation
+
+class Struct:
+    """
+    This class is just a dummy mutable object to which we can add attributes.
+    """
+    pass
 
 def func(x, n, D, phi, field):
     """
@@ -141,5 +147,22 @@ def periodic_field_line(field, n, periods=1, R0=None, Z0=None):
     plt.tight_layout()
     plt.show()
     """
-    return R, phi, Z
 
+    # Find the intersections of the periodic field line with other symmetry planes:
+    # Note that the Fourier interpolation routine assumes periodicity in [0, 2pi), not [0, 2pi*periods/nfp)
+    phi_k = np.linspace(0, 2 * np.pi, periods, endpoint=False)
+    R_k = fourier_interpolation(R, phi_k)
+    Z_k = fourier_interpolation(Z, phi_k)
+
+    # Pack results for return
+    results = Struct()
+    
+    results.R = R
+    results.phi = phi
+    results.Z = Z
+    results.periods = periods
+    results.nfp = field.nfp
+    results.R_k = R_k
+    results.Z_k = Z_k
+
+    return results

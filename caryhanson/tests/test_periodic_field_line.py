@@ -102,7 +102,10 @@ class PeriodicFieldLineTests(unittest.TestCase):
         # Create a default helical coil
         hc = HelicalCoil()
         for nphi in [7, 18, 23]:
-            R, phi, Z = periodic_field_line(hc, nphi)
+            pfl = periodic_field_line(hc, nphi)
+            R = pfl.R
+            phi = pfl.phi
+            Z = pfl.Z
             # Interpolate the reference result to the lower-resolution phi grid:
             R_ref = interp1d(phi_hires, R_hires, kind='cubic')(phi)
             Z_ref = interp1d(phi_hires, Z_hires, kind='cubic')(phi)
@@ -257,7 +260,10 @@ class PeriodicFieldLineTests(unittest.TestCase):
         # Create a default helical coil
         hc = HelicalCoil()
         for nphi in [49, 66, 79]:
-            R, phi, Z = periodic_field_line(hc, nphi, periods=8, R0=0.862, Z0=0.016)
+            pfl = periodic_field_line(hc, nphi, periods=8, R0=0.862, Z0=0.016)
+            R = pfl.R
+            phi = pfl.phi
+            Z = pfl.Z
             # Interpolate the reference result to the lower-resolution phi grid:
             R_ref = interp1d(phi_hires, R_hires, kind='cubic')(phi)
             Z_ref = interp1d(phi_hires, Z_hires, kind='cubic')(phi)
@@ -306,7 +312,10 @@ class PeriodicFieldLineTests(unittest.TestCase):
         rf = ReimanField()
         for nphi_float in np.linspace(9, 31, 7):
             nphi = int(nphi_float)
-            R, phi, Z = periodic_field_line(rf, nphi, periods=6, R0=1.2, Z0=0)
+            pfl = periodic_field_line(rf, nphi, periods=6, R0=1.2, Z0=0)
+            R = pfl.R
+            phi = pfl.phi
+            Z = pfl.Z
             # Interpolate the reference result to the lower-resolution phi grid:
             R_ref = interp1d(phi_hires, R_hires, kind='cubic')(phi)
             Z_ref = interp1d(phi_hires, Z_hires, kind='cubic')(phi)
