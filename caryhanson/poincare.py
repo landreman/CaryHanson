@@ -9,6 +9,12 @@ import matplotlib.pyplot as plt
 from mpi4py import MPI
 from scipy.integrate import solve_ivp
 
+class Struct:
+    """
+    This class is just a dummy mutable object to which we can add attributes.
+    """
+    pass
+
 def poincare(field, R0, Z0, npoints=20, rmin=0.75, rmax=1.2,
              zmin=-0.15, zmax=0.15, pdf=False, rtol=1e-6, atol=1e-9,
              marker_size=1, extra_str=""):
@@ -109,13 +115,15 @@ def compute_poincare(field, R0, Z0, npoints=20, rmin=0.75, rmax=1.2,
             print('Proc {:4d} is sending field line {:5d} to root'.format(mpi_rank, j))
             comm.send(Poincare_data[j], dest=0, tag=index)
 
-   # Pack data into a dict
-   data = {'data': Poincare_data,
-           'rtol': rtol,
-           'atol': atol,
-           'mpi_N_procs': mpi_N_procs,
-           'npoints': npoints,
-           'nlines': N_field_lines}
+   # Pack data into a structure:
+   data = Struct()
+   data.data = Poincare_data
+   data.rtol = rtol
+   data.atol = atol
+   data.mpi_N_procs = mpi_N_procs
+   data.npoints = npoints
+   data.nlines = N_field_lines
+
    return data
 
 
@@ -134,8 +142,8 @@ def plot_poincare(data, pdf=False, marker_size=1, extra_str=""):
    if mpi_rank != 0:
       return
 
-   Poincare_data = data['data']
-   N_field_lines = data['nlines']
+   Poincare_data = data.data
+   N_field_lines = data.nlines
    
    fig = plt.figure(figsize=(14,7))
    num_rows = 2
@@ -154,10 +162,10 @@ def plot_poincare(data, pdf=False, marker_size=1, extra_str=""):
       plt.grid(which='major',linewidth=0.5)
       plt.grid(which='minor',linewidth=0.15)
 
-   rtol = data['rtol']
-   atol = data['atol']
-   npoints = data['npoints']
-   mpi_N_procs = data['mpi_N_procs']
+   rtol = data.rtol
+   atol = data.atol
+   npoints = data.npoints
+   mpi_N_procs = data.mpi_N_procs
    title_string = extra_str + ' Rtol='+str(rtol)+', Atol='+str(atol)+', N_procs='+str(mpi_N_procs) \
                   + ', Npoints=' + str(npoints) + ', Nlines=' + str(N_field_lines)
    plt.figtext(0.5, 0.995, title_string, fontsize=10, ha='center', va='top')

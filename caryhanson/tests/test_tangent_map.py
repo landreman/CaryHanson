@@ -17,7 +17,7 @@ class TangentMapTests(unittest.TestCase):
 
         field = HelicalCoil()
         tm = tangent_map(field, R0=0.98343287162797)
-        places = 10
+        places = 8
         self.assertAlmostEqual(tm.iota_per_period, 0.11287146743203362, places=places)
         self.assertAlmostEqual(tm.iota, 0.5643573371601681, places=places)
         M = np.array([[ 0.75888781375709 ,  1.37679244594353 ],
