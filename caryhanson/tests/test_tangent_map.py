@@ -57,5 +57,21 @@ class TangentMapTests(unittest.TestCase):
         np.testing.assert_allclose(tm.mat, M, atol=1.0e-6)
         self.assertAlmostEqual(tm.residue, 0.008236367883594053, places=places)
         
+    def test_CaryHanson1986_page2469(self):
+        """
+        Compare to some numbers quoted on page 2469 of
+        Cary & Hanson (1986), for a helical coil with straight
+        winding law.
+        """
+
+        field = HelicalCoil(I=[0.0307,-0.0307])
+
+        # First consider the magnetic axis.
+        # Cary & Hanson quote the axis position as 0.9822, but I get a bit higher, 0.9833
+        tm = tangent_map(field, R0=0.983393787292938)
+        places = 8
+        # Cary & Hanson quote iota_per_period = 0.324. I get a bit lower.
+        self.assertAlmostEqual(tm.iota_per_period, 0.3102585112979056, places=places)
+        
 if __name__ == "__main__":
     unittest.main()

@@ -103,6 +103,13 @@ def tangent_map(field, periods=1, R0=1, Z0=0, rtol=1e-6, atol=1e-9):
     iota = iota_per_period * field.nfp
     residue = 0.25 * (2 - np.trace(M))
     print('iota per period: {},  total iota: {},  residue: {}'.format(iota_per_period, iota, residue))
+
+    sigma = np.array([[0, 1], [-1, 0]])
+    tempmat = np.matmul(sigma, M)
+    W = 0.5 * (tempmat + tempmat.transpose())
+    W_eigvals, W_eigvects = np.linalg.eig(W)
+    print('W_eigvals: ', W_eigvals)
+    print('W_eigvects: ', W_eigvects)
     
     results = Struct()
     results.mat = M
