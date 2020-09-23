@@ -9,8 +9,9 @@ import matplotlib.pyplot as plt
 from mpi4py import MPI
 from scipy.integrate import solve_ivp
 
-def poincare(field, R0, Z0, npoints=20, rmin=0.75, rmax=1.2, zmin=-0.15, zmax=0.15, \
-             pdf=False, rtol=1e-6, atol=1e-9, marker_size=1, extra_str=""):
+def poincare(field, R0, Z0, npoints=20, rmin=0.75, rmax=1.2,
+             zmin=-0.15, zmax=0.15, pdf=False, rtol=1e-6, atol=1e-9,
+             marker_size=1, extra_str=""):
    """
    Generate a Poincare plot
 
@@ -23,6 +24,23 @@ def poincare(field, R0, Z0, npoints=20, rmin=0.75, rmax=1.2, zmin=-0.15, zmax=0.
    rtol, atol: tolerances for the integration
    marker_size: size of points in the plot
    extra_str: string added to plot title and filename
+   """
+   data = compute_poincare(field, R0, Z0, npoints=npoints, rmin=rmin,
+                           rmax=rmax, zmin=zmin, zmax=zmax, rtol=rtol, atol=atol)
+   
+   plot_poincare(data, pdf=pdf, marker_size=marker_size, extra_str=extra_str)
+   
+def compute_poincare(field, R0, Z0, npoints=20, rmin=0.75, rmax=1.2,
+                     zmin=-0.15, zmax=0.15, rtol=1e-6, atol=1e-9):
+   """
+   Generate the raw (x,y) data for a Poincare plot, without actually plotting it
+   
+   field: A magnetic field object, which must have nfp attribute.
+   R0: Initial R values. Can be an array of any dimension, or a single value.
+   Z0: Initial Z values
+   npoints: Number of points to compute for each initial condition for the Poincare plot
+   rmin, rmax, zmin, zmax: Stop tracing field line if you leave this region
+   rtol, atol: tolerances for the integration
    """
    comm = MPI.COMM_WORLD
    mpi_N_procs = comm.Get_size()
@@ -91,36 +109,66 @@ def poincare(field, R0, Z0, npoints=20, rmin=0.75, rmax=1.2, zmin=-0.15, zmax=0.
             print('Proc {:4d} is sending field line {:5d} to root'.format(mpi_rank, j))
             comm.send(Poincare_data[j], dest=0, tag=index)
 
+   # Pack data into a dict
+   data = {'data': Poincare_data,
+           'rtol': rtol,
+           'atol': atol,
+           'mpi_N_procs': mpi_N_procs,
+           'npoints': npoints,
+           'nlines': N_field_lines}
+   return data
 
-   if mpi_rank == 0:
-      fig = plt.figure(figsize=(14,7))
-      num_rows = 2
-      num_cols = 2
-      for j_quarter in range(4):
-         plt.subplot(num_rows, num_cols, j_quarter + 1)
-         for j in range(N_field_lines):
-            plt.scatter(Poincare_data[j][0,j_quarter:-1:4], Poincare_data[j][1,j_quarter:-1:4], s=marker_size, edgecolors='none')
-         plt.xlabel('R')
-         plt.ylabel('Z')
-         plt.gca().set_aspect('equal',adjustable='box')
-         # Turn on minor ticks, since it is necessary to get minor grid lines
-         from matplotlib.ticker import AutoMinorLocator
-         plt.gca().xaxis.set_minor_locator(AutoMinorLocator(10))
-         plt.gca().yaxis.set_minor_locator(AutoMinorLocator(10))
-         plt.grid(which='major',linewidth=0.5)
-         plt.grid(which='minor',linewidth=0.15)
 
-      title_string = extra_str + ' Rtol='+str(rtol)+', Atol='+str(atol)+', N_procs='+str(mpi_N_procs) \
-                     + ', Npoints=' + str(npoints) + ', Nlines=' + str(N_field_lines)
-      plt.figtext(0.5, 0.995, title_string, fontsize=10, ha='center', va='top')
+def plot_poincare(data, pdf=False, marker_size=1, extra_str=""):
+   """
+   Generate a Poincare plot using precomputed (R,Z) data.
 
-      plt.tight_layout()
-      filename = 'Poincare_'+extra_str+'_rtol'+str(rtol)+'_atol'+str(atol) \
-          +'_Npoints'+str(npoints)+'_Nlines'+str(N_field_lines)+'_Nprocs'+str(mpi_N_procs)+'.pdf'
-      print(filename)
+   data: a dict returned by compute_poincare().
+   pdf: bool indicating whether to save a PDF.
+   marker_size: size of points in the plot
+   extra_str: string added to plot title and filename
+   """
+   comm = MPI.COMM_WORLD
+   mpi_N_procs = comm.Get_size()
+   mpi_rank = comm.Get_rank()
+   if mpi_rank != 0:
+      return
 
-      if pdf:
-         print('Saving PDF')
-         plt.savefig(filename)
-      else:
-         plt.show()
+   Poincare_data = data['data']
+   N_field_lines = data['nlines']
+   
+   fig = plt.figure(figsize=(14,7))
+   num_rows = 2
+   num_cols = 2
+   for j_quarter in range(4):
+      plt.subplot(num_rows, num_cols, j_quarter + 1)
+      for j in range(N_field_lines):
+         plt.scatter(Poincare_data[j][0,j_quarter:-1:4], Poincare_data[j][1,j_quarter:-1:4], s=marker_size, edgecolors='none')
+      plt.xlabel('R')
+      plt.ylabel('Z')
+      plt.gca().set_aspect('equal',adjustable='box')
+      # Turn on minor ticks, since it is necessary to get minor grid lines
+      from matplotlib.ticker import AutoMinorLocator
+      plt.gca().xaxis.set_minor_locator(AutoMinorLocator(10))
+      plt.gca().yaxis.set_minor_locator(AutoMinorLocator(10))
+      plt.grid(which='major',linewidth=0.5)
+      plt.grid(which='minor',linewidth=0.15)
+
+   rtol = data['rtol']
+   atol = data['atol']
+   npoints = data['npoints']
+   mpi_N_procs = data['mpi_N_procs']
+   title_string = extra_str + ' Rtol='+str(rtol)+', Atol='+str(atol)+', N_procs='+str(mpi_N_procs) \
+                  + ', Npoints=' + str(npoints) + ', Nlines=' + str(N_field_lines)
+   plt.figtext(0.5, 0.995, title_string, fontsize=10, ha='center', va='top')
+
+   plt.tight_layout()
+   filename = 'Poincare_'+extra_str+'_rtol'+str(rtol)+'_atol'+str(atol) \
+       +'_Npoints'+str(npoints)+'_Nlines'+str(N_field_lines)+'_Nprocs'+str(mpi_N_procs)+'.pdf'
+   print(filename)
+
+   if pdf:
+      print('Saving PDF')
+      plt.savefig(filename)
+   else:
+      plt.show()
