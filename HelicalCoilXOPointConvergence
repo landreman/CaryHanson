@@ -1,0 +1,59 @@
+#!/usr/bin/env python
+
+"""
+This script computes the location of an X-point or O-point for the helical coils
+with straight winding law, varying the number of grid points for the solve.
+The number of grid points for the coils themselves remains fixed.
+"""
+
+
+import numpy as np
+from caryhanson import HelicalCoil, periodic_field_line
+import matplotlib.pyplot as plt
+
+periods = 6; Rguess = 0.797; Zguess = 0.0242
+#periods = 6; Rguess = 0.805; Zguess = 0.0
+#periods = 7; Rguess = 0.839; Zguess = 0.0417
+#periods = 8; Rguess = 0.87; Zguess = 0.01
+#periods = 8; Rguess = 0.875; Zguess = 0.0
+
+ns = np.arange(31, 99, 2)
+R0s = np.zeros(ns.shape)
+Z0s = np.zeros(ns.shape)
+hc = HelicalCoil()
+for j in range(len(ns)):
+    n = ns[j]
+    R, phi, Z = periodic_field_line(hc, n, periods=periods, R0=Rguess, Z0=Zguess)
+    R0s[j] = R[0]
+    Z0s[j] = Z[0]
+
+print('ns: ', ns)
+print('R0s:', R0s)
+print('Z0s:', Z0s)
+    
+plt.figure(figsize=(12,7))
+numrows=2
+numcols=2
+
+plt.subplot(numrows, numcols, 1)
+plt.plot(ns, R0s, '.-')
+plt.xlabel('n')
+plt.ylabel('R0')
+
+plt.subplot(numrows, numcols, 2)
+plt.plot(ns, Z0s, '.-')
+plt.xlabel('n')
+plt.ylabel('Z0')
+
+plt.subplot(numrows, numcols, 3)
+plt.semilogy(ns, np.abs(R0s - R0s[-1]), '.-')
+plt.xlabel('n')
+plt.ylabel('|R0 - best R0|')
+
+plt.subplot(numrows, numcols, 4)
+plt.semilogy(ns, np.abs(Z0s - Z0s[-1]), '.-')
+plt.xlabel('n')
+plt.ylabel('|Z0 - best Z0|')
+
+plt.tight_layout()
+plt.show()
