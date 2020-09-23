@@ -1,4 +1,4 @@
-#!/usr/bin/env python3A
+#!/usr/bin/env python3
 
 """
 This module provides a function for finding periodic field lines and the magnetic axis.

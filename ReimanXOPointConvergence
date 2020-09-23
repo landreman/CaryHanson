@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 
 """
-This script computes the location of an X-point or O-point for the helical coils
-with straight winding law, varying the number of grid points for the solve.
+This script computes the location of an X-point or O-point for the
+Reiman field, varying the number of grid points for the solve.
 The number of grid points for the coils themselves remains fixed.
 """
 
 
 import numpy as np
-from caryhanson import HelicalCoil, periodic_field_line
+from caryhanson import ReimanField, periodic_field_line
 import matplotlib.pyplot as plt
 
-#periods = 1; Rguess = 0.98; Zguess = 0
-periods = 6; Rguess = 0.797; Zguess = 0.0242
+periods = 6; Rguess = 1.2; Zguess = 0.0
 #periods = 6; Rguess = 0.805; Zguess = 0.0
 #periods = 7; Rguess = 0.839; Zguess = 0.0417
 #periods = 8; Rguess = 0.87; Zguess = 0.01
@@ -20,14 +19,14 @@ periods = 6; Rguess = 0.797; Zguess = 0.0242
 
 np.set_printoptions(precision=15)
 
-#ns = np.arange(31, 33, 2)
-ns = np.array([int(n) for n in np.linspace(31, 100, 25)])
+ns = np.arange(3, 33, 2)
+#ns = np.array([int(n) for n in np.linspace(31, 100, 5)])
 R0s = np.zeros(ns.shape)
 Z0s = np.zeros(ns.shape)
-hc = HelicalCoil()
+field = ReimanField()
 for j in range(len(ns)):
     n = ns[j]
-    R, phi, Z = periodic_field_line(hc, n, periods=periods, R0=Rguess, Z0=Zguess)
+    R, phi, Z = periodic_field_line(field, n, periods=periods, R0=Rguess, Z0=Zguess)
     R0s[j] = R[0]
     Z0s[j] = Z[0]
 

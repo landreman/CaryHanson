@@ -1,4 +1,4 @@
-#!/usr/bin/env python3AOAA
+#!/usr/bin/env python3
 
 """
 This module contains a class for the Reiman-Greensides model magnetic field.
