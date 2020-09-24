@@ -5,7 +5,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 from caryhanson.helicalcoil import HelicalCoil
 from caryhanson.reiman import ReimanField
-from caryhanson.periodic_field_line import periodic_field_line, func, jacobian
+from caryhanson.periodic_field_line import periodic_field_line, func, jacobian, circumference
 
 class PeriodicFieldLineTests(unittest.TestCase):
 
@@ -323,6 +323,19 @@ class PeriodicFieldLineTests(unittest.TestCase):
                 nphi, np.max(np.abs(R - R_ref)), np.max(np.abs(Z - Z_ref))))
             np.testing.assert_allclose(R, R_ref, atol=1.0e-4)
             np.testing.assert_allclose(Z, Z_ref, atol=1.0e-4)
+        
+    def test_circumference(self):
+        """
+        Verify that we find the correct circumference for the Reiman field
+        """
+        field = ReimanField(eps=[1e-4])
+        pfl = periodic_field_line(field, 11, periods=6, R0=1.2)
+        pfl = circumference(pfl, 1.0, 0.0)
+        iota_res = 1.0 / 6
+        iota_0 = 0.15
+        iota_1 = 0.38
+        circumf_analytic = 6 * np.sqrt((iota_res - iota_0) / iota_1)
+        self.assertAlmostEqual(circumf_analytic, pfl.circumference, places=4)
         
 if __name__ == "__main__":
     unittest.main()

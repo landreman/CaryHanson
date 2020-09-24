@@ -13,7 +13,7 @@
 #python -m unittest -v caryhanson.tests.test_fourier_interpolation
 
 # Example of running a specific test that matches a pattern:
-#python -m unittest -v caryhanson.tests.test_periodic_field_line -k jacobian
+#python -m unittest -v caryhanson.tests.test_periodic_field_line -k circum
 
 # Run all tests:
 python -m unittest -v

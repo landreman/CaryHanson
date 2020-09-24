@@ -160,6 +160,8 @@ def circumference(pfl, R0, Z0):
     R0, Z0: Point in the middle of the periodic field line, about which a poloidal
     angle will be calculated for ordering. Typically this point is the
     magnetic axis.
+
+    Attributes are added to pfl and the resulting object is returned.
     """
 
     theta = np.arctan2(pfl.Z_k - Z0, pfl.R_k - R0)
@@ -169,3 +171,19 @@ def circumference(pfl, R0, Z0):
     # Shift the ordering so index 0 is first:
     shift = list(rho).index(0)
     rho = np.roll(rho, -shift)
+
+    Rs = pfl.R_k[rho]
+    Zs = pfl.Z_k[rho]
+    circumf = np.sqrt((Rs[0] - Rs[-1]) ** 2 \
+                      + (Zs[0] - Zs[-1]) ** 2)
+    for j in range(1, pfl.periods):
+        circumf += np.sqrt((Rs[j] - Rs[j - 1]) ** 2 \
+                           + (Zs[j] - Zs[j - 1]) ** 2)
+
+    pfl.circumference = circumf
+    pfl.rho = rho
+    pfl.rho_inv = np.argsort(rho)
+    pfl.Rs = Rs
+    pfl.Zs = Zs
+
+    return pfl
