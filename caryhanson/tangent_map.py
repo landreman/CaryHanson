@@ -98,7 +98,7 @@ def tangent_map(field, periods=1, R0=1, Z0=0, rtol=1e-6, atol=1e-9):
     eigvals, eigvects = np.linalg.eig(M)
     print('eigvals: ', eigvals)
     print('eigvects: ', eigvects)
-    
+
     iota_per_period = np.angle(eigvals[0]) / (2 * np.pi)
     iota = iota_per_period * field.nfp
     residue = 0.25 * (2 - np.trace(M))
@@ -110,6 +110,14 @@ def tangent_map(field, periods=1, R0=1, Z0=0, rtol=1e-6, atol=1e-9):
     W_eigvals, W_eigvects = np.linalg.eig(W)
     print('W_eigvals: ', W_eigvals)
     print('W_eigvects: ', W_eigvects)
+    # The larger eigenvalue corresponds to eperp
+    if np.abs(W_eigvals[0]) > np.abs(W_eigvals[1]):
+        eperp = W_eigvects[:,0]
+        epar = W_eigvects[:,1]
+    else:
+        eperp = W_eigvects[:,1]
+        epar = W_eigvects[:,0]
+    
     
     results = Struct()
     results.mat = M
@@ -118,5 +126,7 @@ def tangent_map(field, periods=1, R0=1, Z0=0, rtol=1e-6, atol=1e-9):
     results.iota_per_period = iota_per_period
     results.iota = iota
     results.residue = residue
-
+    results.epar = epar
+    results.eperp = eperp
+    
     return results

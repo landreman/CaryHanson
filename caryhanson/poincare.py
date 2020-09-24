@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpi4py import MPI
 from scipy.integrate import solve_ivp
+import pickle
 
 class Struct:
     """
@@ -180,3 +181,21 @@ def plot_poincare(data, pdf=False, marker_size=1, extra_str=""):
       plt.savefig(filename)
    else:
       plt.show()
+
+
+def poincare_save(data, filename):
+    """
+    Save Poincare (R,Z) data to a file.
+    """
+    with open(filename, 'wb') as output:
+        pickle.dump(data, output)
+
+def poincare_load(filename):
+    """
+    Load Poincare (R,Z) data from a file.
+    """
+    with open(filename, 'rb') as input:
+        data = pickle.load(input)
+    return data
+
+        

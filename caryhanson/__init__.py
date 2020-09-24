@@ -7,5 +7,5 @@ from .reiman import ReimanField
 from .spectral_diff_matrix import *
 from .fourier_interpolation import fourier_interpolation
 from .periodic_field_line import *
-from .poincare import poincare
+from .poincare import *
 from .tangent_map import tangent_map

@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+
+"""
+This script produces Poincare plots for the helical coils with straight winding law,
+using previously computed (R, Z) data. It should only be run serially.
+"""
+
+import numpy as np
+import sys
+sys.path.append('/Users/mattland/CaryHanson')
+from caryhanson import poincare_load, HelicalCoil, periodic_field_line, tangent_map
+import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator
+
+filename = 'Poincare_helical_rtol1e-06_atol1e-09_Npoints2000_Nlines20.dat'
+data = poincare_load(filename)
+Poincare_data = data.data
+N_field_lines = data.nlines
+
+# Display the Poincare plot
+marker_size = 0.5
+fig = plt.figure(figsize=(14,7))
+j_quarter = 0
+for j in range(N_field_lines):
+    plt.scatter(Poincare_data[j][0,j_quarter:-1:4], Poincare_data[j][1,j_quarter:-1:4], s=marker_size, edgecolors='none')
+plt.xlabel('R')
+plt.ylabel('Z')
+plt.gca().set_aspect('equal',adjustable='box')
+# Turn on minor ticks, since it is necessary to get minor grid lines                                                             
+plt.gca().xaxis.set_minor_locator(AutoMinorLocator(10))
+plt.gca().yaxis.set_minor_locator(AutoMinorLocator(10))
+plt.grid(which='major',linewidth=0.5)
+plt.grid(which='minor',linewidth=0.15)
+
+field = HelicalCoil()
+
+# Find and plot the magnetic axis:
+pfl = periodic_field_line(field, 31, periods=1, R0=1.0)
+plt.plot(pfl.R_k, pfl.Z_k, '+b', label='Magnetic axis')
+
+# Find X and O points
+label_par = 'epar'
+label_perp = 'eperp'
+L = 8
+for xo in [0, 1]:
+    print('xo:', xo, ' type(xo):', type(xo), ' xo<1', xo<1)
+    if xo < 1:
+        label = 'O points'
+        R0 = 0.86165
+        Z0 = 1.6066e-2
+        linespec = '.k'
+    else:
+        label = 'X points'
+        R0 = 0.8645101
+        Z0 = 0
+        linespec = 'xr'
+
+    pfl = periodic_field_line(field, 99, periods=L, R0=R0, Z0=Z0)
+
+    # Plot the e|| and eperp vectors
+    for j in range(L):
+        tm = tangent_map(field, periods=L, R0=pfl.R_k[j], Z0=pfl.Z_k[j])
+        length = 0.004
+        plt.plot([pfl.R_k[j], pfl.R_k[j] + length * tm.epar[0]],
+                 [pfl.Z_k[j], pfl.Z_k[j] + length * tm.epar[1]], '-m', label=label_par)
+        plt.plot([pfl.R_k[j], pfl.R_k[j] + length * tm.eperp[0]],
+                 [pfl.Z_k[j], pfl.Z_k[j] + length * tm.eperp[1]], '-c', label=label_perp)
+        label_par = None
+        label_perp = None
+
+    plt.plot(pfl.R_k, pfl.Z_k, linespec, label=label)
+
+plt.legend(loc='upper right', fontsize=10)
+
+plt.tight_layout()
+plt.show()

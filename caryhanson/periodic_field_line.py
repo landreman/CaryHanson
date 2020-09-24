@@ -133,20 +133,6 @@ def periodic_field_line(field, n, periods=1, R0=None, Z0=None):
     #residual = func(root, n, D, phi, field)
     residual = soln.fun
     print('Residual: ', np.max(np.abs(residual)))
-    """
-    bigphi = np.concatenate((phi, phi + phimax))
-    plt.figure(figsize=(14,5))
-    plt.subplot(1, 2, 1)
-    plt.plot(bigphi, np.concatenate((R, R)), '.-', label='R')
-    plt.xlabel('phi')
-    plt.title('R')
-    plt.subplot(1, 2, 2)
-    plt.plot(bigphi, np.concatenate((Z, Z)), '.-', label='Z')
-    plt.xlabel('phi')
-    plt.title('Z')
-    plt.tight_layout()
-    plt.show()
-    """
 
     # Find the intersections of the periodic field line with other symmetry planes:
     # Note that the Fourier interpolation routine assumes periodicity in [0, 2pi), not [0, 2pi*periods/nfp)
@@ -166,3 +152,20 @@ def periodic_field_line(field, n, periods=1, R0=None, Z0=None):
     results.Z_k = Z_k
 
     return results
+
+
+def circumference(pfl, R0, Z0):
+    """
+    pfl: Data structure returned by periodic_field_lin. 
+    R0, Z0: Point in the middle of the periodic field line, about which a poloidal
+    angle will be calculated for ordering. Typically this point is the
+    magnetic axis.
+    """
+
+    theta = np.arctan2(pfl.Z_k - Z0, pfl.R_k - R0)
+
+    # Sort the points by increasing theta
+    rho = np.argsort(theta)
+    # Shift the ordering so index 0 is first:
+    shift = list(rho).index(0)
+    rho = np.roll(rho, -shift)

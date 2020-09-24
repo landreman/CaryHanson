@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+
+"""
+This script generates Poincare plots for the helical coils with
+straight winding law.  You can run this script either serially or with
+mpi.
+"""
+
+import numpy as np
+import sys
+sys.path.append('/Users/mattland/CaryHanson')
+from caryhanson import HelicalCoil, compute_poincare, poincare_save
+from mpi4py import MPI
+
+comm = MPI.COMM_WORLD
+mpi_rank = comm.Get_rank()
+
+rf = HelicalCoil()
+
+# Define initial (R,Z) points for the Poincare plot:
+r0 = np.concatenate((np.linspace(0.983, 1.1, 16), np.linspace(0.865, 0.85, 4)))
+z0 = np.concatenate((np.zeros(16), np.full(4, 0.015)))
+
+npoints = 2000
+rtol = 1e-6
+atol = 1e-9
+data = compute_poincare(rf, r0, z0, npoints=npoints, rmin=0.72,
+                        zmin=-0.23, zmax=0.23, rtol=rtol, atol=atol)
+
+if mpi_rank != 0:
+    exit(0)
+
+filename = 'Poincare_helical_rtol' + str(rtol) + '_atol' + str(atol) \
+    + '_Npoints' + str(npoints) + '_Nlines' + str(len(r0)) + '.dat'
+print('Saving file ', filename)
+poincare_save(data, filename)
