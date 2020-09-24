@@ -158,6 +158,12 @@ def tangent_map(field, pfl, rtol=1e-6, atol=1e-9):
             eperp = W_eigvects_j[:,1]
             epar = W_eigvects_j[:,0]
 
+        # Alessandro uses the convention that epar * M * eperp is >0.
+        sign_fac = np.dot(epar, np.dot(M, eperp))
+        print('sign_fac: ', sign_fac)
+        if sign_fac < 0:
+            epar = -epar
+            
         full_orbit_tangent_maps.append(M)
         eigvals.append(eigvals_j)
         eigvects.append(eigvects_j)
