@@ -56,15 +56,15 @@ for xo in [0, 1]:
         linespec = 'xr'
 
     pfl = periodic_field_line(field, 99, periods=6, R0=R0, Z0=Z0)
+    tm = tangent_map(field, pfl)
 
     # Plot the e|| and eperp vectors
     for j in range(6):
-        tm = tangent_map(field, periods=6, R0=pfl.R_k[j], Z0=pfl.Z_k[j])
         length = 0.015
-        plt.plot([pfl.R_k[j], pfl.R_k[j] + length * tm.epar[0]],
-                 [pfl.Z_k[j], pfl.Z_k[j] + length * tm.epar[1]], '-m', label=label_par)
-        plt.plot([pfl.R_k[j], pfl.R_k[j] + length * tm.eperp[0]],
-                 [pfl.Z_k[j], pfl.Z_k[j] + length * tm.eperp[1]], '-c', label=label_perp)
+        plt.plot([pfl.R_k[j], pfl.R_k[j] + length * tm.epars[j][0]],
+                 [pfl.Z_k[j], pfl.Z_k[j] + length * tm.epars[j][1]], '-m', label=label_par)
+        plt.plot([pfl.R_k[j], pfl.R_k[j] + length * tm.eperps[j][0]],
+                 [pfl.Z_k[j], pfl.Z_k[j] + length * tm.eperps[j][1]], '-c', label=label_perp)
         label_par = None
         label_perp = None
 
