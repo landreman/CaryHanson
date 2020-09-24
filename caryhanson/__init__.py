@@ -9,3 +9,4 @@ from .fourier_interpolation import fourier_interpolation
 from .periodic_field_line import *
 from .poincare import *
 from .tangent_map import tangent_map
+from .island_width import *

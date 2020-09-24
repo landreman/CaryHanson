@@ -8,7 +8,7 @@ using previously computed (R, Z) data. It should only be run serially.
 import numpy as np
 import sys
 sys.path.append('/Users/mattland/CaryHanson')
-from caryhanson import poincare_load, ReimanField, periodic_field_line, tangent_map
+from caryhanson import poincare_load, ReimanField, periodic_field_line, tangent_map, circumference, island_width
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 
@@ -39,27 +39,33 @@ field = ReimanField()
 pfl = periodic_field_line(field, 31, periods=1, R0=1.0)
 plt.plot(pfl.R_k, pfl.Z_k, '+b', label='Magnetic axis')
 
+periods = 6
+
 # Find X and O points
 label_par = 'epar'
 label_perp = 'eperp'
 for xo in [0, 1]:
-    print('xo:', xo, ' type(xo):', type(xo), ' xo<1', xo<1)
     if xo < 1:
-        label = 'O points'
-        R0 = 1.2
-        Z0 = 0
-        linespec = '.k'
-    else:
         label = 'X points'
         R0 = 1.18
         Z0 = 0.11
         linespec = 'xr'
+    else:
+        label = 'O points'
+        R0 = 1.2
+        Z0 = 0
+        linespec = '.k'
 
-    pfl = periodic_field_line(field, 99, periods=6, R0=R0, Z0=Z0)
+    pfl = periodic_field_line(field, 99, periods=periods, R0=R0, Z0=Z0)
     tm = tangent_map(field, pfl)
 
+    pfl = circumference(pfl, 1.0, 0.0)
+    print('Circumference: ', pfl.circumference)
+    width, vects = island_width(pfl, tm)
+    print('Width: ', width)
+    
     # Plot the e|| and eperp vectors
-    for j in range(6):
+    for j in range(periods):
         length = 0.015
         plt.plot([pfl.R_k[j], pfl.R_k[j] + length * tm.epars[j][0]],
                  [pfl.Z_k[j], pfl.Z_k[j] + length * tm.epars[j][1]], '-m', label=label_par)
@@ -70,7 +76,16 @@ for xo in [0, 1]:
 
     plt.plot(pfl.R_k, pfl.Z_k, linespec, label=label)
 
-plt.legend(loc='upper right', fontsize=10)
+    if vects is not None:
+        length = 0.002
+        for j in range(len(vects)):
+            j_mod = np.mod(j, periods)
+            r0 = pfl.R_k[j_mod]
+            z0 = pfl.Z_k[j_mod]
+            plt.plot([r0, r0 + length * vects[j][0]],
+                     [z0, z0 + length * vects[j][1]], '-k', lw=0.5)
+
+    plt.legend(loc='upper right', fontsize=10)
 
 plt.tight_layout()
 plt.show()

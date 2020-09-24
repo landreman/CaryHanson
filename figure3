@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+
+"""
+This script produces Poincare plots for the Reiman field model
+using previously computed (R, Z) data. It should only be run serially.
+"""
+
+import numpy as np
+import sys
+sys.path.append('/Users/mattland/CaryHanson')
+from caryhanson import poincare_load, ReimanField, periodic_field_line, tangent_map, circumference, island_width
+
+periods = 6
+
+iota0 = 0.15
+iota1 = 0.38
+iota_res = 1.0 / 6
+eps_arr = 10.0 ** np.linspace(-4, -2, 11)
+width_analytic = 4 * np.sqrt(eps_arr / (2 * iota1)) * (iota_res - iota0) / iota1
+width_CH = np.zeros(eps_arr.shape)
+width_CH_accurate_circumf = np.zeros(eps_arr.shape)
+
+circumf_analytic = 2 * np.pi * np.sqrt((iota_res - iota0) / iota1)
+
+for jeps in range(len(eps_arr)):
+    field = ReimanField(eps=[eps_arr[jeps]])
+
+    # Find O points
+    R0 = 1.2
+    Z0 = 0
+
+    pfl = periodic_field_line(field, 39, periods=periods, R0=R0, Z0=Z0)
+    tm = tangent_map(field, pfl)
+
+    pfl = circumference(pfl, 1.0, 0.0)
+    print('Circumference: ', pfl.circumference)
+    width, vects = island_width(pfl, tm)
+    print('Width: ', width)
+
+    width_CH[jeps] = width
+    width_CH_accurate_circumf[jeps] = width * circumf_analytic / pfl.circumference
+
+print('width_analytic:')
+print(width_analytic)
+print('width_CH:')
+print(width_CH)
+print('width_CH_accurate_circumf:')
+print(width_CH_accurate_circumf)
+
+
+import matplotlib.pyplot as plt
+
+fig = plt.figure(figsize=(7,7))
+
+numrows = 2
+numcols = 1
+
+plt.subplot(numrows, numcols, 1)
+plt.loglog(eps_arr, width_analytic, '-k', label='Analytic')
+plt.plot(eps_arr, width_CH, '.b', label='Cary-Hanson')
+plt.plot(eps_arr, width_CH_accurate_circumf, 'rx', label='Cary-Hanson with improved circumference')
+plt.xlabel(r'$\epsilon_6$')
+plt.ylabel('Island width')
+plt.legend(loc='upper left', fontsize=10)
+plt.xlim([1e-4, 1e-2])
+plt.ylim([1e-3, 1e-1])
+
+plt.subplot(numrows, numcols, 2)
+plt.loglog(eps_arr, np.abs(1 - width_CH / width_analytic), '.b', label='Cary-Hanson')
+plt.plot(eps_arr, np.abs(1 - width_CH_accurate_circumf / width_analytic), 'rx', label='Cary-Hanson with improved circumf')
+plt.xlabel(r'$\epsilon_6$')
+plt.ylabel('Error')
+plt.xlim([1e-4, 1e-2])
+
+plt.tight_layout()
+plt.show()

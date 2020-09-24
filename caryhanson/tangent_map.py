@@ -163,6 +163,17 @@ def tangent_map(field, pfl, rtol=1e-6, atol=1e-9):
         print('sign_fac: ', sign_fac)
         if sign_fac < 0:
             epar = -epar
+
+        # Alessandro's second sign convention: epar(q) * S^q * eperp(0) is > 0
+        # First form S^q
+        if j == 1:
+            Sq = single_period_tangent_maps[0]
+        elif j > 1:
+            Sq = np.matmul(single_period_tangent_maps[j - 1], Sq)
+        # Now that we have Sq, flip the signs if needed:
+        if j > 0 and np.dot(epar, np.dot(Sq, eperps[0])) < 0:
+            epar = -epar
+            eperp = -eperp
             
         full_orbit_tangent_maps.append(M)
         eigvals.append(eigvals_j)
