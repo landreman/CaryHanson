@@ -150,6 +150,8 @@ def tangent_map(field, pfl, rtol=1e-6, atol=1e-9):
         W_eigvals_j, W_eigvects_j = np.linalg.eig(W)
         print('W_eigvals: ', W_eigvals_j)
         print('W_eigvects: ', W_eigvects_j)
+        eig_ratio = np.max(np.abs(W_eigvals_j)) / np.min(np.abs(W_eigvals_j))
+        print('Ratio of W eigvals: ', eig_ratio)
         # The larger eigenvalue corresponds to eperp
         if np.abs(W_eigvals_j[0]) > np.abs(W_eigvals_j[1]):
             eperp = W_eigvects_j[:,0]
@@ -158,6 +160,24 @@ def tangent_map(field, pfl, rtol=1e-6, atol=1e-9):
             eperp = W_eigvects_j[:,1]
             epar = W_eigvects_j[:,0]
 
+        """
+        if eig_ratio < 5:
+            print('W eigenvalue ratio is close to 1, so using alternative method to pick epar and eperp.')
+            Ravg = np.mean(pfl.R_k)
+            Zavg = np.mean(pfl.Z_k)
+            print('Ravg: {},  Zavg: {}'.format(Ravg, Zavg))
+            dR = pfl.R_k[j] - Ravg
+            dZ = pfl.Z_k[j] - Zavg
+            prod0 = np.abs(dR * W_eigvects_j[0, 0] + dZ * W_eigvects_j[1, 0])
+            prod1 = np.abs(dR * W_eigvects_j[0, 1] + dZ * W_eigvects_j[1, 1])
+            if prod0 > prod1:
+                eperp = W_eigvects_j[:,0]
+                epar = W_eigvects_j[:,1]
+            else:
+                eperp = W_eigvects_j[:,1]
+                epar = W_eigvects_j[:,0]
+        """
+        
         # Alessandro uses the convention that epar * M * eperp is >0.
         sign_fac = np.dot(epar, np.dot(M, eperp))
         print('sign_fac: ', sign_fac)

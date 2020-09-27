@@ -12,17 +12,24 @@ from caryhanson import poincare_load, HelicalCoil, periodic_field_line, tangent_
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 
-filename = 'Poincare_helical_rtol1e-06_atol1e-09_Npoints2000_Nlines20.dat'
-data = poincare_load(filename)
-Poincare_data = data.data
-N_field_lines = data.nlines
-
 # Display the Poincare plot
 marker_size = 0.5
 fig = plt.figure(figsize=(14,7))
 j_quarter = 0
-for j in range(N_field_lines):
-    plt.scatter(Poincare_data[j][0,j_quarter:-1:4], Poincare_data[j][1,j_quarter:-1:4], s=marker_size, edgecolors='none')
+
+filenames = ['Poincare_helical_rtol1e-06_atol1e-09_Npoints2000_Nlines20.dat']
+#             'Poincare_helicalIslands_rtol1e-06_atol1e-09_Npoints2000_Nlines16.dat']
+
+for k in range(len(filenames)):
+    filename = filenames[k]
+
+    data = poincare_load(filename)
+    Poincare_data = data.data
+    N_field_lines = data.nlines
+
+    for j in range(N_field_lines):
+        plt.scatter(Poincare_data[j][0,j_quarter:-1:4], Poincare_data[j][1,j_quarter:-1:4], s=marker_size, edgecolors='none')
+
 plt.xlabel('R')
 plt.ylabel('Z')
 plt.gca().set_aspect('equal',adjustable='box')
@@ -41,23 +48,48 @@ plt.plot(pfl.R_k, pfl.Z_k, '+b', label='Magnetic axis')
 # Find X and O points
 label_par = 'epar'
 label_perp = 'eperp'
-L = 8
-for xo in [0, 1]:
-    print('xo:', xo, ' type(xo):', type(xo), ' xo<1', xo<1)
-    if xo < 1:
-        label = 'O points'
+for xo in range(6):
+    if xo == 0:
+        L = 8
+        label = 'O points, L=8'
         R0 = 0.86165
         Z0 = 1.6066e-2
         linespec = '.k'
-    else:
-        label = 'X points'
+    elif xo == 1:
+        L = 8
+        label = 'X points, L=8'
         R0 = 0.8645101
         Z0 = 0
         linespec = 'xr'
+    elif xo == 2:
+        L = 7
+        label = 'O points, L=7'
+        R0 = 0.839368
+        Z0 = 0.041686
+        linespec = '.b'
+    elif xo == 3:
+        L = 7
+        label = 'X points, L=7'
+        R0 = 1.125
+        Z0 = 0
+        linespec = 'xc'
+    elif xo == 4:
+        L = 6
+        label = 'O points, L=6'
+        R0 = 0.79760
+        Z0 = 0.024240
+        linespec = '.m'
+    else:
+        L = 6
+        label = 'X points, L=6'
+        R0 = 0.805144
+        Z0 = 0
+        linespec = 'xy'
 
     pfl = periodic_field_line(field, 99, periods=L, R0=R0, Z0=Z0)
     tm = tangent_map(field, pfl)
 
+    label = 'Periodic field line with L={}, residue={}'.format(L, tm.residue)
     # Plot the e|| and eperp vectors
     for j in range(L):
         length = 0.004
@@ -70,7 +102,7 @@ for xo in [0, 1]:
 
     plt.plot(pfl.R_k, pfl.Z_k, linespec, label=label)
 
-plt.legend(loc='upper right', fontsize=10)
+plt.legend(loc='upper right', fontsize=7)
 
 plt.tight_layout()
 plt.show()

@@ -15,7 +15,7 @@ periods = 6
 iota0 = 0.15
 iota1 = 0.38
 iota_res = 1.0 / 6
-eps_arr = 10.0 ** np.linspace(-4, -2, 11)
+eps_arr = 10.0 ** np.linspace(-4, -2, 21)
 width_analytic = 4 * np.sqrt(eps_arr / (2 * iota1)) * (iota_res - iota0) / iota1
 width_CH = np.zeros(eps_arr.shape)
 width_CH_accurate_circumf = np.zeros(eps_arr.shape)
@@ -30,7 +30,7 @@ for jeps in range(len(eps_arr)):
     Z0 = 0
 
     pfl = periodic_field_line(field, 39, periods=periods, R0=R0, Z0=Z0)
-    tm = tangent_map(field, pfl)
+    tm = tangent_map(field, pfl, rtol=1e-8, atol=1e-11)
 
     pfl = circumference(pfl, 1.0, 0.0)
     print('Circumference: ', pfl.circumference)
@@ -68,6 +68,7 @@ plt.ylim([1e-3, 1e-1])
 plt.subplot(numrows, numcols, 2)
 plt.loglog(eps_arr, np.abs(1 - width_CH / width_analytic), '.b', label='Cary-Hanson')
 plt.plot(eps_arr, np.abs(1 - width_CH_accurate_circumf / width_analytic), 'rx', label='Cary-Hanson with improved circumf')
+plt.plot(eps_arr, eps_arr, ':g')
 plt.xlabel(r'$\epsilon_6$')
 plt.ylabel('Error')
 plt.xlim([1e-4, 1e-2])
