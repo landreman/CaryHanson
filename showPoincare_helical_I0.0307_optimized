@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+
+"""
+This script produces Poincare plots for the helical coils with straight winding law,
+using previously computed (R, Z) data. It should only be run serially.
+"""
+
+import numpy as np
+import sys
+sys.path.append('/Users/mattland/CaryHanson')
+from caryhanson import poincare_load, HelicalCoil, periodic_field_line, tangent_map
+import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator
+
+# Display the Poincare plot
+marker_size = 0.5
+fig = plt.figure(figsize=(14,7))
+j_quarter = 0
+
+filenames = ['Poincare_helical_I0.0307_optimized_rtol1e-06_atol1e-09_Npoints2000_Nlines32.dat']
+#             'Poincare_helicalIslands_rtol1e-06_atol1e-09_Npoints2000_Nlines16.dat']
+
+for k in range(len(filenames)):
+    filename = filenames[k]
+
+    data = poincare_load(filename)
+    Poincare_data = data.data
+    N_field_lines = data.nlines
+
+    for j in range(N_field_lines):
+        plt.scatter(Poincare_data[j][0,j_quarter:-1:4], Poincare_data[j][1,j_quarter:-1:4], s=marker_size, edgecolors='none')
+
+plt.xlabel('R')
+plt.ylabel('Z')
+plt.gca().set_aspect('equal',adjustable='box')
+# Turn on minor ticks, since it is necessary to get minor grid lines                                                             
+plt.gca().xaxis.set_minor_locator(AutoMinorLocator(10))
+plt.gca().yaxis.set_minor_locator(AutoMinorLocator(10))
+plt.grid(which='major',linewidth=0.5)
+plt.grid(which='minor',linewidth=0.15)
+
+field = HelicalCoil.I0307_optimized()
+
+# Find and plot the magnetic axis:
+pfl = periodic_field_line(field, 31, periods=1, R0=1.0)
+plt.plot(pfl.R_k, pfl.Z_k, '+b', label='Magnetic axis')
+
+# Find X and O points
+label_par = 'epar'
+label_perp = 'eperp'
+for xo in range(2):
+    if xo == 0:
+        L = 3
+        label = 'O points, L=6'
+        R0 = 1.015
+        Z0 = 0
+        linespec = '.k'
+    elif xo == 1:
+        L = 3
+        label = 'X points, L=6'
+        R0 = 0.867
+        Z0 = 0
+        linespec = 'xr'
+    else:
+        raise RuntimeError('Should not get here')
+    
+    pfl = periodic_field_line(field, 199, periods=L, R0=R0, Z0=Z0)
+    tm = tangent_map(field, pfl, atol=1e-8, rtol=1e-11)
+
+    label = 'Periodic field line with L={}, residue={}'.format(L, tm.residue)
+    # Plot the e|| and eperp vectors
+    for j in range(L):
+        length = 0.004
+        plt.plot([pfl.R_k[j], pfl.R_k[j] + length * tm.epars[j][0]],
+                 [pfl.Z_k[j], pfl.Z_k[j] + length * tm.epars[j][1]], '-m', label=label_par)
+        plt.plot([pfl.R_k[j], pfl.R_k[j] + length * tm.eperps[j][0]],
+                 [pfl.Z_k[j], pfl.Z_k[j] + length * tm.eperps[j][1]], '-c', label=label_perp)
+        label_par = None
+        label_perp = None
+
+    plt.plot(pfl.R_k, pfl.Z_k, linespec, label=label)
+
+plt.legend(fontsize=7, bbox_to_anchor=(0., 1.02, 0.5, .2), loc='lower left')
+
+plt.tight_layout()
+plt.show()

@@ -199,3 +199,18 @@ class HelicalCoil(Field):
 
         hc = cls(A=A, B=B, *args, **kwargs)
         return hc
+
+    @classmethod
+    def I0307_optimized(cls, *args, **kwargs):
+        """
+        Return the optimized helical coil shape from figure 3 and table 1
+        of Cary & Hanson (1986).
+        """
+        A = [[0, np.pi / 2], \
+             [0, 0.298089]]
+        
+        B = [[0, 0], \
+             [0.298089, 0]]
+
+        hc = cls(I=np.array([-1,1])*0.0307, A=A, B=B, *args, **kwargs)
+        return hc
