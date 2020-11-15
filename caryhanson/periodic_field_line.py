@@ -103,7 +103,7 @@ def periodic_field_line(field, n, periods=1, R0=None, Z0=None, tol=1e-13):
         # Use Runge-Kutta to initialize our guess for the field line
         t_span = (0, phimax)
         phi_plus1 = np.linspace(0, phimax, n + 1, endpoint=True)
-        sol = solve_ivp(field.d_RZ_d_phi, t_span, [R0, Z0], t_eval = phi_plus1)
+        sol = solve_ivp(field.d_RZ_d_phi, t_span, [R0, Z0], t_eval = phi_plus1, atol=1e-8, rtol=1e-11)
         # Shift the trajectory by a linear function to make it periodic
         R0 = sol.y[0, :-1] - np.linspace(0, sol.y[0, -1] - sol.y[0, 0], n, endpoint=True)
         Z0 = sol.y[1, :-1] - np.linspace(0, sol.y[1, -1] - sol.y[1, 0], n, endpoint=True)
@@ -125,7 +125,7 @@ def periodic_field_line(field, n, periods=1, R0=None, Z0=None, tol=1e-13):
     state = np.concatenate((R0, Z0))
     #root, infodict, ier, mesg = fsolve(func, state)
     #root = fsolve(func, state, xtol=1e-13, args=(n, D, phi, field))
-    soln = scipy.optimize.root(func, state, tol=tol, args=(n, D, phi, field), jac=jacobian)
+    soln = scipy.optimize.root(func, state, tol=tol, args=(n, D, phi, field), jac=jacobian, method='lm', options={'maxiter':30})
     root = soln.x
     R = root[0:n]
     Z = root[n:2 * n]
@@ -150,6 +150,7 @@ def periodic_field_line(field, n, periods=1, R0=None, Z0=None, tol=1e-13):
     results.nfp = field.nfp
     results.R_k = R_k
     results.Z_k = Z_k
+    results.residual = np.max(np.abs(residual))
 
     return results
 
