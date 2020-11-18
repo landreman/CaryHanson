@@ -48,7 +48,7 @@ plt.plot(pfl.R_k, pfl.Z_k, '+b', label='Magnetic axis')
 # Find X and O points
 label_par = 'epar'
 label_perp = 'eperp'
-for xo in range(2):
+for xo in range(4):
     if xo == 0:
         L = 3
         label = 'O points, L=6'
@@ -60,7 +60,17 @@ for xo in range(2):
         label = 'X points, L=6'
         R0 = 0.867
         Z0 = 0
-        linespec = 'xr'
+        linespec = 'or'
+    elif xo == 2:
+        L = 3
+        R0 = 1.0107
+        Z0 = 0.0057
+        linespec = '+y'
+    elif xo == 3:
+        L = 3
+        R0 = 1.0107
+        Z0 = -0.0057
+        linespec = 'xg'
     else:
         raise RuntimeError('Should not get here')
     
@@ -81,6 +91,9 @@ for xo in range(2):
     plt.plot(pfl.R_k, pfl.Z_k, linespec, label=label)
 
 plt.legend(fontsize=7, bbox_to_anchor=(0., 1.02, 0.5, .2), loc='lower left')
+
+plt.xlim([0.82, 1.05])
+plt.ylim([-0.017, 0.017])
 
 plt.tight_layout()
 plt.show()

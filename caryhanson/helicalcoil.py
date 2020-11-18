@@ -214,3 +214,39 @@ class HelicalCoil(Field):
 
         hc = cls(I=np.array([-1,1])*0.0307, A=A, B=B, *args, **kwargs)
         return hc
+
+    @classmethod
+    def I0307_optimized_better(cls, *args, **kwargs):
+        """
+        Return an optimized helical coil shape similar to that from figure
+        3 and table 1 of Cary & Hanson (1986), but using my own
+        optimization so the residues are even smaller and balanced.
+        """
+        # x at solution: [0.30654573 0.34165165]
+        # residues at solution:  [0.01434758 0.01442332]
+        
+        A = [[0, np.pi / 2], \
+             [0, 0.3065]]
+        
+        B = [[0, 0], \
+             [0.3417, 0]]
+
+        hc = cls(I=np.array([-1,1])*0.0307, A=A, B=B, *args, **kwargs)
+        return hc
+
+    @classmethod
+    def I0307_optimized_right(cls, *args, **kwargs):
+        """
+        Return an optimized helical coil shape similar to that from figure
+        3 and table 1 of Cary & Hanson (1986), but using my own
+        optimization so the residue of the rightmost periodic field
+        line is zeroed out.
+        """
+        A = [[0, np.pi / 2], \
+             [0, 0.2962]]
+        
+        B = [[0, 0], \
+             [0.3017, 0]]
+
+        hc = cls(I=np.array([-1,1])*0.0307, A=A, B=B, *args, **kwargs)
+        return hc

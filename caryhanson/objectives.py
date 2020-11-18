@@ -115,8 +115,10 @@ def I0307_objective(x):
 
     L = 3
 
+    weights = [1, 10]
+    
     # The periodic field line on the right is easier to find:
-    R0_right = 1.0
+    R0_right = 1.02
 
     # The periodic field line on the left is harder to find, so we
     # need a more robust search:
@@ -126,9 +128,11 @@ def I0307_objective(x):
     residuals = []
     for j, R0 in enumerate([R0_left, R0_right]):
         pfl = periodic_field_line(field, 199, periods=L, R0=R0, Z0=0)
+        print('pfl.R_k: ', pfl.R_k)
+        print('pfl.Z_k: ', pfl.Z_k)
         if pfl.residual > 1e-8:
             raise RuntimeError('periodic_field_line residual is large')
-        if np.abs(pfl.Z_k[0]) > 1e-6:
+        if np.abs(pfl.Z_k[0]) > 1e-4:
             raise RuntimeError('Initial Z of periodic_field_line is not 0')
         if np.max(pfl.R_k) - np.min(pfl.R_k) < 1e-4:
             raise RuntimeError('Found the magnetic axis instead of the desired X or O point')
@@ -138,10 +142,117 @@ def I0307_objective(x):
             raise RuntimeError('Failed finding right periodic field line')
         
         tm = tangent_map(field, pfl, atol=1e-8, rtol=1e-11)
-        residuals.append(tm.residue)
+        residuals.append(tm.residue * weights[j])
         
     f = open('I0307_evals', 'a')
     f.write('{:20.15} {:20.15} {:20.15} {:20.15}\n'.format(x[0], x[1], residuals[0], residuals[1]))
+    f.close()
+    
+    return np.array(residuals)
+
+def I0307_single_objective(x):
+    """
+    x should be a 2 element vector giving A(2,1) and B(1,1)
+    """
+    f = open('I0307_single_points', 'a')
+    f.write('{:20.15} {:20.15}\n'.format(x[0], x[1]))
+    f.close()
+
+    A = [[0, np.pi / 2], \
+         [0, x[0]]]
+
+    B = [[0, 0], \
+         [x[1], 0]]
+
+    field = HelicalCoil(I=np.array([-1,1])*0.0307, A=A, B=B)
+
+    L = 3
+
+    # The periodic field line on the right is easier to find:
+    R0_right = 1.02
+
+    # The periodic field line on the left is harder to find, so we
+    # need a more robust search:
+    #R0_left = find_R0(field, 3, 0.81, -1)
+    #R0_left = find_R0_brute_force(field, 3, 0.81, 0.88, 30)
+
+    residuals = []
+    #for j, R0 in enumerate([R0_left, R0_right]):
+    for j, R0 in enumerate([R0_right]):
+        pfl = periodic_field_line(field, 199, periods=L, R0=R0, Z0=0)
+        print('pfl.R_k: ', pfl.R_k)
+        print('pfl.Z_k: ', pfl.Z_k)
+        if pfl.residual > 1e-8:
+            raise RuntimeError('periodic_field_line residual is large')
+        if np.abs(pfl.Z_k[0]) > 1e-6:
+            raise RuntimeError('Initial Z of periodic_field_line is not 0')
+        if np.max(pfl.R_k) - np.min(pfl.R_k) < 1e-4:
+            raise RuntimeError('Found the magnetic axis instead of the desired X or O point')
+        #if j==0 and np.argmin(pfl.R_k) != 0:
+        #    raise RuntimeError('Failed finding left periodic field line')
+        if j==0 and np.argmax(pfl.R_k) != 0:
+            raise RuntimeError('Failed finding right periodic field line')
+        
+        tm = tangent_map(field, pfl, atol=1e-8, rtol=1e-11)
+        residuals.append(tm.residue)
+        
+    f = open('I0307_single_evals', 'a')
+    f.write('{:20.15} {:20.15} {:20.15}\n'.format(x[0], x[1], residuals[0]))
+    f.close()
+    
+    return np.array(residuals)
+
+def I0307_4dof_objective(x):
+    """
+    x should be a 2 element vector giving A(2,1) and B(1,1)
+    """
+    f = open('I0307_4dof_points', 'a')
+    f.write('{:20.15} {:20.15} {:20.15} {:20.15}\n'.format(x[0], x[1], x[2], x[3]))
+    f.close()
+
+    A = [[0, np.pi / 2], \
+         [0, x[0]], \
+         [0, x[2]]]
+
+    B = [[0, 0], \
+         [x[1], 0], \
+         [x[3], 0]]
+
+    field = HelicalCoil(I=np.array([-1,1])*0.0307, A=A, B=B)
+
+    L = 3
+
+    weights = [1, 1]
+    
+    # The periodic field line on the right is easier to find:
+    R0_right = 1.02
+
+    # The periodic field line on the left is harder to find, so we
+    # need a more robust search:
+    #R0_left = find_R0(field, 3, 0.81, -1)
+    R0_left = find_R0_brute_force(field, 3, 0.81, 0.88, 30)
+
+    residuals = []
+    for j, R0 in enumerate([R0_left, R0_right]):
+        pfl = periodic_field_line(field, 199, periods=L, R0=R0, Z0=0)
+        print('pfl.R_k: ', pfl.R_k)
+        print('pfl.Z_k: ', pfl.Z_k)
+        if pfl.residual > 1e-8:
+            raise RuntimeError('periodic_field_line residual is large')
+        if np.abs(pfl.Z_k[0]) > 1e-4:
+            raise RuntimeError('Initial Z of periodic_field_line is not 0')
+        if np.max(pfl.R_k) - np.min(pfl.R_k) < 1e-4:
+            raise RuntimeError('Found the magnetic axis instead of the desired X or O point')
+        if j==0 and np.argmin(pfl.R_k) != 0:
+            raise RuntimeError('Failed finding left periodic field line')
+        if j==1 and np.argmax(pfl.R_k) != 0:
+            raise RuntimeError('Failed finding right periodic field line')
+        
+        tm = tangent_map(field, pfl, atol=1e-8, rtol=1e-11)
+        residuals.append(tm.residue * weights[j])
+        
+    f = open('I0307_4dof_evals', 'a')
+    f.write('{:20.15} {:20.15} {:20.15} {:20.15} {:20.15} {:20.15}\n'.format(x[0], x[1], x[2], x[3], residuals[0], residuals[1]))
     f.close()
     
     return np.array(residuals)
@@ -165,3 +276,46 @@ def solve_I0307():
     print('solution:', soln)
     print('x at solution:', soln.x)
     print('function at solution:', soln.fun)
+
+def solve_I0307_single():
+    """
+    Driver for the optimization of the I = 0.0307 coils. In this
+    version, we only optimize the residue for the O point, not the X
+    point.
+    """
+    # Delete files, if they exist:
+    f = open('I0307_single_points', 'w')
+    f.write('x[0], x[1]\n')
+    f.close()
+    f = open('I0307_single_evals', 'w')
+    f.write('x[0], x[1], y[0]\n')
+    f.close()
+
+    lower_bounds = [0, 0]
+    upper_bounds = [0.4, 0.4]
+    x0 = [0.3, 0.3]
+    soln = least_squares(I0307_single_objective, x0, bounds=(lower_bounds, upper_bounds), verbose=2, jac='3-point', diff_step=1e-5)
+    print('solution:', soln)
+    print('x at solution:', soln.x)
+    print('function at solution:', soln.fun)
+
+def solve_I0307_4dof():
+    """
+    Driver for the optimization of the I = 0.0307 coils.
+    """
+    # Delete files, if they exist:
+    f = open('I0307_4dof_points', 'w')
+    f.write('x[0], x[1], x[2], x[3]\n')
+    f.close()
+    f = open('I0307_4dof_evals', 'w')
+    f.write('x[0], x[1], x[2], x[3], y[0], y[1]\n')
+    f.close()
+
+    lower_bounds = [0, 0, -0.2, -0.2]
+    upper_bounds = [0.4, 0.4, 0.2, 0.2]
+    x0 = [0.3, 0.3, 0, 0]
+    soln = least_squares(I0307_4dof_objective, x0, bounds=(lower_bounds, upper_bounds), verbose=2, jac='3-point', diff_step=1e-6)
+    print('solution:', soln)
+    print('x at solution:', soln.x)
+    print('function at solution:', soln.fun)
+

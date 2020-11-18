@@ -125,7 +125,7 @@ def periodic_field_line(field, n, periods=1, R0=None, Z0=None, tol=1e-13):
     state = np.concatenate((R0, Z0))
     #root, infodict, ier, mesg = fsolve(func, state)
     #root = fsolve(func, state, xtol=1e-13, args=(n, D, phi, field))
-    soln = scipy.optimize.root(func, state, tol=tol, args=(n, D, phi, field), jac=jacobian, method='lm', options={'maxiter':30})
+    soln = scipy.optimize.root(func, state, tol=tol, args=(n, D, phi, field), jac=jacobian, method='lm', options={'maxiter':100})
     root = soln.x
     R = root[0:n]
     Z = root[n:2 * n]

@@ -15,10 +15,10 @@ from mpi4py import MPI
 comm = MPI.COMM_WORLD
 mpi_rank = comm.Get_rank()
 
-rf = HelicalCoil.I0307_optimized()
+rf = HelicalCoil.I0307_optimized_right()
 
 # Define initial (R,Z) points for the Poincare plot:
-r0 = np.concatenate((np.linspace(0.9394, 1.036, 29), np.linspace(0.8667, 0.8695, 3)))
+r0 = np.concatenate((np.linspace(0.94, 1.033, 28), np.linspace(0.8627, 0.8713, 4)))
 #z0 = np.concatenate((np.zeros(16), np.full(4, 0.015)))
 #r0 = np.linspace(0.983, 1.03, 8)
 #r0 = np.linspace(0.938, 1.036, 32)
@@ -33,7 +33,7 @@ data = compute_poincare(rf, r0, z0, npoints=npoints, rmin=0.72,
 if mpi_rank != 0:
     exit(0)
 
-filename = 'Poincare_helical_I0.0307_optimized_rtol' + str(rtol) + '_atol' + str(atol) \
+filename = 'Poincare_helical_I0.0307_optimizedRight_rtol' + str(rtol) + '_atol' + str(atol) \
     + '_Npoints' + str(npoints) + '_Nlines' + str(len(r0)) + '.dat'
 print('Saving file ', filename)
 poincare_save(data, filename)
