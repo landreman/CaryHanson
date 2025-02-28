@@ -115,7 +115,7 @@ def I0307_objective(x):
 
     L = 3
 
-    weights = [1, 10]
+    weights = [1, 1]
     
     # The periodic field line on the right is easier to find:
     R0_right = 1.02
@@ -269,9 +269,9 @@ def solve_I0307():
     f.write('x[0], x[1], y[0], y[1]\n')
     f.close()
 
-    lower_bounds = [0, 0]
+    lower_bounds = [-0.1, -0.1]
     upper_bounds = [0.4, 0.4]
-    x0 = [0.3, 0.3]
+    x0 = [0.0, 0.0]
     soln = least_squares(I0307_objective, x0, bounds=(lower_bounds, upper_bounds), verbose=2, jac='3-point', diff_step=1e-5)
     print('solution:', soln)
     print('x at solution:', soln.x)

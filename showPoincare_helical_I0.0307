@@ -66,6 +66,7 @@ for xo in range(2):
     
     pfl = periodic_field_line(field, 199, periods=L, R0=R0, Z0=Z0)
     tm = tangent_map(field, pfl, atol=1e-8, rtol=1e-11)
+    print('R={}, residue={}'.format(pfl.R_k[0], tm.residue))
 
     label = 'Periodic field line with L={}, residue={}'.format(L, tm.residue)
     # Plot the e|| and eperp vectors
