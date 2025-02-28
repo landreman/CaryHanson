@@ -12,47 +12,40 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.7, 3.8]
+        python-version: [3.9, "3.10", 3.11, 3.12, 3.13]
 
     steps:
-    # First print out lots of information. We do this in separate 
-    # "name" blocks because otherwise the output gets mixed together
-    # in the github actions log.
-
-    - name: Print user and group id
-      run: id
-
     - name: PWD
       run: pwd
 
-    - uses: actions/checkout@v2
-      # If we want submodules downloaded, uncomment the next 2 lines:
-      #with:
-      #  submodules: true
+    - uses: actions/checkout@v4
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: which python after python setup
       run: python --version
 
-    - name: Install required python packages
+    - name: Upgrade pip
       run: |
         python -m pip install --upgrade pip
-        pip install wheel numpy scipy matplotlib jax jaxlib
-    
+
     - name: Install mpi
       run: |
         sudo apt-get install libopenmpi-dev
-    
+
     - name: Install mpi4py
       run: |
         pip install mpi4py
-    
-    - name: env after adding python
-      run: env
+
+    - name: Install package and requirements
+      run: |
+        pip install .
+
+    - name: list installed packages
+      run: pip list
 
     - name: Run unit tests
       run: python3 -m unittest -v

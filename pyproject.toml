@@ -1,0 +1,11 @@
+[project]
+name = "caryhanson"
+version = "v0.1.0"
+dynamic = ["dependencies"]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm.dynamic]
+dependencies = {file = ["requirements.txt"]}
