@@ -6,7 +6,7 @@ set of associated helical coils.
 """
 
 # These next 2 lines tell jax to use double precision:                                                                     
-from jax.config import config                                                                                             
+from jax import config                                                                                             
 config.update("jax_enable_x64", True)
 
 import numpy as np
