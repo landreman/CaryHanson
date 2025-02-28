@@ -7,5 +7,5 @@ dynamic = ["dependencies"]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools_scm.dynamic]
+[tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}

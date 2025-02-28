@@ -4,4 +4,4 @@ __pycache__
 *.dat
 *.png
 .DS_Store
-\#*
+/#*
